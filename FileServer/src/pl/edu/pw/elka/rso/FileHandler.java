@@ -38,7 +38,6 @@ public class FileHandler {
 		}
 	}
 	public void downloadFile(String filename, Socket socket, int size){
-//		otworz strumien i czeka, jak pojawi się plik to pobieraj dopoki nie null
 		FileOutputStream fos = null;
 	    BufferedOutputStream bos = null;
 	    int current = 0;
@@ -48,7 +47,7 @@ public class FileHandler {
 		      byte [] mybytearray  = new byte [size];
 		      InputStream is = socket.getInputStream();
 		      fos = new FileOutputStream(filename);
-		      bos = new BufferedOutputStream(fos);
+		      bos = new BufferedOutputStream(fos, (int)(size*1.2));
 		      int bytesRead = is.read(mybytearray,0,mybytearray.length);
 		      current = bytesRead;
 
