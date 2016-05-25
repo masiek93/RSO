@@ -1,13 +1,13 @@
 package directoryServer.db_operations;
 
-import java.awt.List;
-import java.beans.Statement;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.LinkedList;
+import java.util.List;
 
 import directoryServer.file_info.file_info_storager;
 import directoryServer.file_info.file_on_server;

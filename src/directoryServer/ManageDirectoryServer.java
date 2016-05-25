@@ -1,9 +1,11 @@
 package directoryServer;
 
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.ObjectOutputStream;
+import java.io.OutputStreamWriter;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.UnknownHostException;
@@ -26,6 +28,8 @@ public class ManageDirectoryServer
 	public static void main(String[] args) 
 	{
 		startServer();
+		
+		startClient();
 	}
 	
 	private static void startServer() 
@@ -40,6 +44,8 @@ public class ManageDirectoryServer
                     ss = new ServerSocket(CLIENT_ENTRY_SOCKET);
 
                     Socket s = ss.accept();
+                    
+                    System.out.println("Directory server started");
 
                     BufferedReader in = new BufferedReader(
                             new InputStreamReader(s.getInputStream()));
@@ -72,6 +78,39 @@ public class ManageDirectoryServer
     }
 
 	/**
+	 * Klient testowy
+	 */
+    public static void startClient() {
+        (new Thread() {
+            @Override
+            public void run() {
+                try {
+                    Socket s = new Socket("localhost", CLIENT_ENTRY_SOCKET);
+                    BufferedWriter out = new BufferedWriter(
+                            new OutputStreamWriter(s.getOutputStream()));
+
+                    Thread.sleep(5000);
+                    
+//                    while (true) {
+                        out.write(SEND_FILE_LIST);
+                        out.newLine();
+                        out.flush();
+
+                        
+//                    }
+
+                } catch (UnknownHostException e) {
+                    e.printStackTrace();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
+        }).start();
+    }
+
+	/**
 	 * 
 	 * @param s - socket przez który ma zostaæ wys³ana lista plików
 	 * Docelowo ma nast¹piæ po³¹czenie z serwerami plikowymi, zebranie list plików i scalenie w jedn¹
@@ -85,6 +124,7 @@ public class ManageDirectoryServer
             ObjectOutputStream out = new ObjectOutputStream(s.getOutputStream());
 
             out.writeObject(sfl.getFileList());
+            out.writeObject(sfl.toString());
 
             Thread.sleep(200);
             

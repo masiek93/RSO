@@ -12,4 +12,9 @@ import java.io.Serializable;
 public class AddFile implements Serializable
 {
 
+	/**
+	 * Compiler generated UID
+	 */
+	private static final long serialVersionUID = 1101871768166181376L;
+
 }
