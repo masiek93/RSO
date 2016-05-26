@@ -1,15 +1,14 @@
-package directoryServer;
+package clientConnection;
 
 import java.io.Serializable;
 import java.util.List;
 
-import directoryServer.db_operations.db_operations;
+import clientConnection.db_operations.db_operations;
 
 /**
  * 
  * @author Mateusz
- *Docelowo serwer katalogowy ma uzyskaæ listy plików od serwerów plikowych
- *i scaliæ je w jedn¹ listê plików
+ * Send list of files saved at server's database
  */
 
 public class SendFileList implements Serializable 
@@ -22,6 +21,9 @@ public class SendFileList implements Serializable
 	private db_operations db;
 	private List<String> path_list;
 	
+	/**
+	 *  TODO Docelowo serwer katalogowy ma uzyskaæ listê plików z bazy danych serwera katalogowego
+	 */
 	SendFileList()
 	{
 		db = new db_operations();
@@ -41,7 +43,6 @@ public class SendFileList implements Serializable
 	public String toString()
 	{
 		String ret = null;
-		StringBuilder sb = new StringBuilder(); //co to robi?
 		
 		ret = path_list.toString();
 		

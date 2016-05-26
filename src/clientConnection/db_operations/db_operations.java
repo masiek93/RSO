@@ -1,4 +1,4 @@
-package directoryServer.db_operations;
+package clientConnection.db_operations;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -9,8 +9,8 @@ import java.sql.Statement;
 import java.util.LinkedList;
 import java.util.List;
 
-import directoryServer.file_info.file_info_storager;
-import directoryServer.file_info.file_on_server;
+import clientConnection.file_info.file_info_storager;
+import clientConnection.file_info.file_on_server;
 
 public class db_operations {
 	 

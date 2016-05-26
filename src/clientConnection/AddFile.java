@@ -1,12 +1,12 @@
-package directoryServer;
+package clientConnection;
 
 import java.io.Serializable;
 
 /**
  * 
  * @author Mateusz
- *Dodaj plik - wybierz serwery plikowe, na których ma zostaæ umieszczony plik
- *i przeœlij klientowi socket serwera no1
+ * Add file - choose file servers and put new file,
+ * update local DB
  */
 
 public class AddFile implements Serializable
