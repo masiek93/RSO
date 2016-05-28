@@ -1,4 +1,4 @@
-package pl.edu.pw.elka.rso.manage.server;
+package pl.edu.pw.elka.rso.manage.test;
 
 
 public interface Config {

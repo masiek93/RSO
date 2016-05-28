@@ -1,5 +1,11 @@
 package pl.edu.pw.elka.rso.manage.server;
 
+import pl.edu.pw.elka.rso.manage.node.Node;
+import pl.edu.pw.elka.rso.manage.node.NodeRegister;
+import pl.edu.pw.elka.rso.manage.node.NodeType;
+import pl.edu.pw.elka.rso.manage.util.LongIO;
+import pl.edu.pw.elka.rso.manage.util.LongIOException;
+
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -10,7 +16,38 @@ import java.net.Socket;
  */
 public class ConnectionListener implements Runnable {
 
-boolean running;
+    boolean running;
+    ServerSocket serverSocket;
+    Node node = new Node();
+
+    String idFilePath;
+
+    public ConnectionListener(String idFilePath, ServerSocket serverSocket) {
+        this.serverSocket = serverSocket;
+
+        // connection listener register itself
+        if(idFilePath == null) {
+            this.idFilePath = "id.txt";
+        } else {
+            this.idFilePath = idFilePath;
+        }
+        Long id = null;
+        try {
+            id = LongIO.readLong(this.idFilePath);
+        } catch (LongIOException e) {
+            id = IdManager.getInstance().newId();
+            try {
+                LongIO.writeLong(idFilePath, id);
+            } catch (LongIOException e1) {
+                e1.printStackTrace();
+            }
+        }
+        node.setId(id);
+        node.setNodeType(NodeType.DIRECTORY_NODE);
+
+        NodeRegister.getInstance().registerNode(node);
+
+    }
 
 
     public boolean isRunning() {
@@ -28,19 +65,28 @@ boolean running;
 
     @Override
     public void run() {
-        ServerSocket socket = null;
         try {
-            socket = new ServerSocket(Config.port);
-
+            System.out.println("server is ready for new connections");
             while (isRunning()) {
 
-                Socket sock = socket.accept();
+                Socket sock = serverSocket.accept();
                 new ConnectionHandler(sock).start();
             }
         } catch (IOException e) {
             e.printStackTrace();
+
+
+        } finally {
+            setRunning(false); // in case there was an exception
+            if(!serverSocket.isClosed()) {
+                try {
+                    serverSocket.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
         }
-        setRunning(false); // in case there was an exception
+
 
     }
 }

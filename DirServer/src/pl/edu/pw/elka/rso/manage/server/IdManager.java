@@ -1,24 +1,48 @@
 package pl.edu.pw.elka.rso.manage.server;
 
+
+import pl.edu.pw.elka.rso.manage.util.LongIO;
+import pl.edu.pw.elka.rso.manage.util.LongIOException;
+
+/**
+ * Manage id in the system.
+ */
 public class IdManager {
 
     private static IdManager idManager;
 
-    private long start;
+    private String serialIdFilePath;
+    private Long start;
 
-    private IdManager(long start) {
-        this.start = start;
+    private IdManager(String serialIdFilePath) {
+
+        start = null;
+        this.serialIdFilePath = serialIdFilePath;
+
+        try {
+            start = LongIO.readLong(serialIdFilePath);
+        } catch (LongIOException e) {
+            start = 0l;
+        }
+
     }
 
     public synchronized static IdManager getInstance() {
         if(idManager == null) {
-            idManager = new IdManager(0);
+            idManager = new IdManager("serial_id.txt");
         }
+
         return idManager;
     }
 
     public synchronized Long newId() {
-        return start++;
+        Long ret = start++;
+        try {
+            LongIO.writeLong(serialIdFilePath, start);
+        } catch (LongIOException e) {
+            e.printStackTrace();
+        }
+        return ret;
     }
 
     public synchronized boolean isOk(Long id) {
