@@ -14,12 +14,4 @@ public abstract class FileMessage implements Serializable {
 	public void setId(String id) {
 		this.id = id;
 	}
-// serwer plikow nie zna nazw plikow
-//	private String filename;
-//	String getFilename(){
-//		return filename;
-//	}
-//	void setFilename(String filename){
-//		this.filename=filename;
-//	}
 }

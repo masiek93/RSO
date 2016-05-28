@@ -15,15 +15,21 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.security.DigestInputStream;
 import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.util.Vector;
+//import org.apache.commons.codec.binary.Hex;
 
 public class FileServer {
-	
+	private Vector<String> lockedFiles;
+	Vector<String> getlockedFiles(){return this.lockedFiles;}
+	void setlockedFile(Vector<String> lockedFiles){this.lockedFiles=lockedFiles;}
 	void communicator(ServerSocket servsock,ServerSocket fileServsock,Socket socketToDirectoryServer, String fileStoragePath){
 		   Object object=null;
 		   ObjectInputStream ois=null;
 		   ObjectOutputStream oos=null;
 		   Socket socket=null; // used to provide messaging 
 		   Socket fileSocket = null; // used to upload/download files 
+		   this.lockedFiles=new Vector<String>(); // Block against edit and download
 		   try{
 			   try{
 				   socket = servsock.accept();
@@ -48,9 +54,12 @@ public class FileServer {
 				   }
 				   if (object instanceof DownloadFileMessage){
 					   DownloadFileMessage dgm= (DownloadFileMessage) object;
-					   FileHandler fh = new FileHandler();
-					   fileSocket=fileServsock.accept();
-					   fh.uploadFile(fileStoragePath+"/"+dgm.getId(), fileSocket);
+					   if( !fileIsLocked(dgm.getId())){
+						   FileHandler fh = new FileHandler();
+						   fileSocket=fileServsock.accept();
+						   fh.uploadFile(fileStoragePath+"/"+dgm.getId(), fileSocket);
+					   }
+					   // TODO w przeciwnym wypadku co ?
 					   
 
 				   }
@@ -74,23 +83,28 @@ public class FileServer {
 					   FileHandler fh = new FileHandler();
 					   fileSocket=fileServsock.accept();
 					   String path=fileStoragePath+"/"+ufm.getId();
-					   fh.downloadFile(path, fileSocket, (int)(1.05*ufm.getSizeInBytes()));
+					   if( !fileIsLocked(ufm.getId())){
+						   fh.downloadFile(path, fileSocket, (int)(1.05*ufm.getSizeInBytes()));
+						   // send notification to directory server
+						   // TODO add hash
+						   confirmationMessageToDirectoryServer(socketToDirectoryServer,Type.FILE_RECIVED,Status.SUCCESSFUL,ufm.getId(),null);
+					   }
+					   // TODO w przeciwnym wypadku co ?
+				   }
+				   if (object instanceof FileManagementMessage){
+					   FileManagementMessage fmm=(FileManagementMessage) object;
+					   if (fmm.getFileOperation().equals( FileOperation.LOCK) ){
+						   if ( !fileIsLocked(fmm.getId()))
+							   lockedFiles.add(fmm.getId());
+						   confirmationMessageToDirectoryServer(socketToDirectoryServer,Type.FILE_LOCKED,Status.SUCCESSFUL,fmm.getId(),null);
+					   }
+					   if (fmm.getFileOperation().equals( FileOperation.UNLOCK) ){
+							   lockedFiles.remove(fmm.getId());
+							   confirmationMessageToDirectoryServer(socketToDirectoryServer,Type.FILE_UNLOCKED,Status.SUCCESSFUL,fmm.getId(),null);
+					   }
+//					   TODO Wyslij odpowiedz do serwera  katalogowego
 					   
-					   // send notification to directory server
-					   RecivedFileMessage rfm = new RecivedFileMessage();
-					   rfm.setId(ufm.getId());
-					   rfm.setSender_address(socket.getRemoteSocketAddress().toString());
-					   MessageDigest md = MessageDigest.getInstance("MD5");
-					   InputStream fis_ = Files.newInputStream(Paths.get(path));
-					   DigestInputStream dis = new DigestInputStream(fis_, md);
-			
-//					   rfm.setHash(md.digest());
-//					   ObjectOutputStream oos_dirServer = new ObjectOutputStream(socketToDirectoryServer.getOutputStream());
-////					   ois_dirServer = new ObjectInputStream(socketToDirectoryServer.getInputStream());
-//					   oos_dirServer.writeObject(rfm);
-//					   oos_dirServer.close();
-					   
-				   }				   
+				   }
 			   }finally{
 				   if (ois!=null) ois.close();
 				   if (oos!=null)oos.close();
@@ -100,6 +114,54 @@ public class FileServer {
 			   e.printStackTrace();
 		   }
 	}
+	private boolean fileIsLocked(String fln_nm){
+		for (int i=0;i<this.lockedFiles.size();i++)
+			if( this.lockedFiles.get(i).equals(fln_nm))
+				return true;
+		return false;
+	}
+	void confirmationMessageToDirectoryServer(Socket socketToDirectoryServer, Type type,Status status, String id,byte[] hash){
+		ConfirmationMessage cm = new ConfirmationMessage();
+		cm.setStatus(status);
+		cm.setType(type);
+		cm.setId(id);
+		cm.setHash(hash);
+		
+		ObjectOutputStream oos_dirServer = null;
+		try {
+			try{
+				oos_dirServer = new ObjectOutputStream(socketToDirectoryServer.getOutputStream());
+				oos_dirServer.writeObject(cm);
+	//			moze sie zaciac bo nie ma ObjectInputStream
+			}finally{
+				if (oos_dirServer!=null) oos_dirServer.close();
+			}
+	   	} catch (IOException e) {
+	   		// TODO Auto-generated catch block
+//	   		System.out.println("confirmationMessageToDirectoryServer: "+e.toString());
+	   		e.printStackTrace();
+	   	}catch (NullPointerException e) {
+	   		// TODO Auto-generated catch block
+//	   		System.out.println("confirmationMessageToDirectoryServer: "+e.toString());
+	   		e.printStackTrace();
+	   	}
+	}
+	
+	
+//	public static String getDigest(InputStream is, MessageDigest md, int byteArraySize)
+//			throws NoSuchAlgorithmException, IOException {
+//
+//		md.reset();
+//		byte[] bytes = new byte[byteArraySize];
+//		int numBytes;
+//		while ((numBytes = is.read(bytes)) != -1) {
+//			md.update(bytes, 0, numBytes);
+//		}
+//		byte[] digest = md.digest();
+//		String result = new String(Hex.encodeHex(digest));
+//		return result;
+//	}
+	
 	public static void main(String[] args) {
 		// TODO Auto-generated method stub
 		String fileStoragePath="storage";

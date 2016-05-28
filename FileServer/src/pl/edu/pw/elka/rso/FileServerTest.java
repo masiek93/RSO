@@ -13,6 +13,7 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.UnknownHostException;
 import java.util.Scanner;
+import java.util.Vector;
 
 import junit.framework.Assert;
 
@@ -242,6 +243,59 @@ public class FileServerTest {
 		}
 		t.stop();
 
+		
+	}
+	
+	@Test
+	public void testLockFile()  {
+		Thread t = new Thread()
+		{
+		    public void run() {
+				Object result=null;
+				FileManagementMessage fmm= new FileManagementMessage();
+				fmm.setFileOperation(FileOperation.UNLOCK);
+				fmm.setId("ala_ma_kota.txt");
+				do{
+					try{
+						ObjectInputStream ois=null;
+						ObjectOutputStream oos=null;
+						try{
+							socket_client = new Socket(SERVER, SOCKET_PORT);
+							System.out.println("Connecting...");
+//							order of oos and ois is important (should be opposite to the communicator)
+							oos = new ObjectOutputStream(socket_client.getOutputStream());
+							ois = new ObjectInputStream(socket_client.getInputStream());
+						    
+							oos.writeObject(fmm);
+							result=ois.readObject();
+						}finally{
+							ois.close();
+						    oos.close();
+						}
+					}catch (Exception e) {
+				    	//System.out.println("Client socket: "+e.getMessage()+" "+e.toString());// TODO: handle exception
+				    }
+				}while(true);
+		    }
+		};
+		t.start();
+		
+		FileServer fs=new FileServer();
+		try {
+			Thread.sleep(2);
+    		servsock = new ServerSocket(SOCKET_PORT);
+    		fileServsock = new ServerSocket(FILE_SOCKET_PORT);
+    		Socket socketToDirectoryServer = null;
+    		Vector<String> lockedFiles = new Vector<String>();
+    		lockedFiles.add("ala_ma_kota.txt");
+    		fs.setlockedFile(lockedFiles);
+    		System.out.println("Server: Waiting...");
+    		fs.communicator(servsock,fileServsock,socketToDirectoryServer,"storage");	  
+		}catch (Exception e) {
+    		System.out.println("server socket: "+e.getMessage()+" "+e.toString());// TODO: handle exception
+    	}
+		t.stop();
+		assertTrue(fs.getlockedFiles().isEmpty());
 		
 	}
 	
