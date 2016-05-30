@@ -19,77 +19,64 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
 
-public class ClientListener implements Runnable {
+public abstract class ClientListener implements Runnable {
 
-    private Socket socket;
-    private ObjectOutputStream oStr;
-    private ObjectInputStream iStr;
+    public static final String DEFAULT_ID_FILE_PATH = "resources/gen/id.txt";
 
-    private boolean running;
-    private Node node = new Node();
+    protected Socket socket;
+    protected ObjectOutputStream oStr;
+    protected ObjectInputStream iStr;
+
+    protected boolean running;
+    protected Node thisNode = new Node(); // data describing this thisNode
+    protected Node otherNode; // data describing the other thisNode (manager)
+
+    protected boolean idChanged = false;  // if id changes then the client should persist this information
+
+    protected NodeRegister nodeRegister = NodeRegister.getInstance();
+    protected String idFilePath; // where we are gonna store id
 
 
-    private boolean idChanged = false;
-    private NodeRegister nodeRegister = NodeRegister.getInstance();
+    private boolean isConnected;
 
-    private String idFilePath; // where we are gonna store id
-
-    private Node directoryServerNode;
-
-
+    boolean trying = true; // is it trying to connect
 
     public ClientListener(String idFilePath, NodeType nodeType) {
 
         if(idFilePath != null) {
             this.idFilePath = idFilePath;
         } else {
-            this.idFilePath = "resources/gen/id.txt";
+            this.idFilePath = DEFAULT_ID_FILE_PATH;
         }
 
         try {
-            node.setId(LongIO.readLong(idFilePath));
+            thisNode.setId(LongIO.readLong(idFilePath));
         } catch (LongIOException e) {
-
+            // ignore it. Id will be null and it will be requested from the server.
         }
 
-
-        node.setNodeType(nodeType);
+        thisNode.setNodeType(nodeType);
         try {
+            // register the nodes from configuration
             nodeRegister.initFromConf(Config.getInstance().directoryServerList);
-        } catch (IOException e) {
-            e.printStackTrace();
-        } catch (JAXBException e) {
+
+        } catch (IOException | JAXBException e) {
             e.printStackTrace();
         }
 
     }
 
-    public ClientListener(String idFilePath, NodeType directoryNode, Node dirServer) {
-        this(idFilePath, directoryNode);
-        this.directoryServerNode = dirServer;
-    }
-
-    public static ClientListener FileServerListener(String idFilePath) {
-        return new ClientListener(idFilePath, NodeType.FILE_NODE);
+    public synchronized void setTrying(boolean trying)
+    {
+        this.trying = trying;
     }
 
 
-    public static ClientListener FileServerListener() {
-        return new ClientListener(null, NodeType.FILE_NODE);
+    public synchronized boolean isTrying() {
+        return trying;
     }
-
-    public static ClientListener DirectoryServerListener(String idFilePath, Node dirServer) {
-        return new ClientListener(null, NodeType.DIRECTORY_NODE, dirServer);
-    }
-
-    public static ClientListener DirectoryServerListener(String idFilePath) {
-        return new ClientListener(null, NodeType.DIRECTORY_NODE, null);
-    }
-
-
 
     public void start() {
-        setRunning(true);
         Thread t = new Thread(this);
         t.setDaemon(true);
         t.start();
@@ -104,33 +91,42 @@ public class ClientListener implements Runnable {
     }
 
     public synchronized Long getId() {
-        return node.getId();
+        return thisNode.getId();
     }
 
     public synchronized void setId(Long id) {
-        node.setId(id);
+        thisNode.setId(id);
     }
 
-    @Override
-    public void run() {
-        try{
 
-            pickServer();
+    public void initialPhase() throws IOException, ClassNotFoundException {
+
+        System.out.println("connected to directory node");
+        // first the client its information (parameters, id requests, etc.)
+        clientInitMsg();
+        // server sends its information (nodes that it sees, etc)
+        serverInitMsg();
+        System.out.println("sever info recieved. Initial phase finished");
+    }
+
+
+
+
+
+    public void runner() {
+
+        try{
 
             iStr = new ObjectInputStream(socket.getInputStream());
             oStr = new ObjectOutputStream(socket.getOutputStream());
 
 
-            System.out.println("connected to a server");
-            // first the client
-            clientInitMsg();
+            setRunning(true);
 
-            System.out.println("client info sent");
+            // pick one of the servers from node register
 
-            // send the clients the initial list of servers
-            serverInitMsg();
-
-            System.out.println("sever info recved");
+            // initialize
+            initialPhase();
 
             // from now on, the server is responsible for different stuff
 
@@ -140,19 +136,23 @@ public class ClientListener implements Runnable {
                     case PING:
                         oStr.writeObject(Messages.pongMsg());
                         break;
-                    case INFO:
+                    case EVENT:
                         recvEvent((Event)msg.getData());
                         break;
                 }
                 System.out.println("client recved: " + msg);
             }
 
-
-
-        } catch (IOException | InterruptedException | ClassNotFoundException e) {
+        } catch (IOException | ClassNotFoundException e) {
             e.printStackTrace();
         } finally {
             setRunning(false);
+
+            // unregister the other node
+            if(otherNode.getId() != null) {
+                nodeRegister.deregisterNode(otherNode.getId());
+            }
+
             try {
                 if(!socket.isClosed()) {
                     socket.close();
@@ -165,14 +165,14 @@ public class ClientListener implements Runnable {
     }
 
 
-    private void pickServer() throws InterruptedException, IOException {
+    protected void pickServer() throws InterruptedException, IOException {
         for(Node node: nodeRegister.getDirectoryNodes()) {
             System.out.println("trying to connect with node: " +  node);
-            if(directoryServerNode != null && directoryServerNode.equals(node)) {
-                continue; // don't let client connect with its own server
-            }
+
+            // TODO: handle the case when client connects to its own server
             try {
                 socket = SSocketFactory.createSocket(node.getAddress(), node.getPort());
+                otherNode = node;
                 System.out.println("connected to " + node);
                 return;
             } catch (IOException e) {
@@ -202,10 +202,15 @@ public class ClientListener implements Runnable {
 
     private void serverInitMsg() throws IOException, ClassNotFoundException {
         Message msg = (Message) iStr.readObject();
-        nodeRegister.clear();
+        nodeRegister.clear(); // discard everything that we saw. Refresh this node's information
         nodeRegister.update((NodeRegister) msg.getData());
     }
 
+    /**
+     * request id, send information such as type of server etc.
+     * @throws IOException
+     * @throws ClassNotFoundException
+     */
     private void clientInitMsg() throws IOException, ClassNotFoundException {
 
         // send id
@@ -224,17 +229,18 @@ public class ClientListener implements Runnable {
                 idChanged = false;
             } else {
                 // server didnt accept the message
-                node.setId(null);
+                thisNode.setId(null);
                 clientInitMsg();
             }
         }
 
-        // send type of node
+        // send type of thisNode
 
-        oStr.writeObject(Messages.nodeTypeMsg(node.getNodeType()));
+        oStr.writeObject(Messages.nodeTypeMsg(thisNode.getNodeType()));
 
-        // signal to the server that this node is ready
+        // signal to the server that this thisNode is ready
         oStr.writeObject(Messages.readyMsg());
+
         // write it to file if it has changed
         if(idChanged) {
             try {

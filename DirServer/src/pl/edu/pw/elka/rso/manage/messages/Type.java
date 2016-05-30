@@ -12,6 +12,6 @@ public enum Type {
     ID_REQ,     // request id
     NODE_TYPE, // type of server
 
-    READY, ID_SHOW, ID_CHANGE_ID, ID_RES
+    READY, ID_SHOW, ID_CHANGE_ID, EVENT, ID_RES
 
 }

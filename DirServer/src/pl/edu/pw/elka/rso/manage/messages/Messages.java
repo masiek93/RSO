@@ -56,7 +56,7 @@ public class Messages {
     }
 
     public static Message eventMessage(Event event) {
-        return new Message(Type.INFO, event);
+        return new Message(Type.EVENT, event);
     }
 
 

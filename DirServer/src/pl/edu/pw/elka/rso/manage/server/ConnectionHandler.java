@@ -28,17 +28,18 @@ public class ConnectionHandler implements Runnable, EventListener {
     boolean running;
 
     Queue<Event> eventQueue = new ConcurrentLinkedDeque<>();
-    EventBroadcaster eventBroadcaster = EventBroadcaster.getInstance(); // broadcast some events
+    EventBroadcaster eventBroadcaster; // broadcast some events
     NodeRegister nodeRegister = NodeRegister.getInstance();
     Node node;
 
 
     public ConnectionHandler(Socket sock) {
+
         this.socket = sock;
 
+        eventBroadcaster = EventBroadcaster.getInstance();
         eventBroadcaster.subscribe(this);
         node = new Node();
-
     }
 
     public void start() {
@@ -63,23 +64,7 @@ public class ConnectionHandler implements Runnable, EventListener {
            iStr = new ObjectInputStream(socket.getInputStream());
 
 
-           System.out.println("client has connected!!");
-
-           // first the client
-           clientInitMsg();
-
-
-           System.out.println("client info recved");
-           // notify other nodes that there is a new connected node
-
-           eventBroadcaster.publish(new NodeConnectedEvent(node, getId()));
-           System.out.println("node = " + node);
-           nodeRegister.registerNode(node);
-
-
-           // send the clients the initial list of servers
-           serverInitMsg();
-           System.out.println("server info sent");
+           initialPhase();
 
 
            while(isRunning()) {
@@ -111,6 +96,8 @@ public class ConnectionHandler implements Runnable, EventListener {
            }
 
 
+
+
        } catch (IOException e) {
            e.printStackTrace();
 
@@ -121,7 +108,8 @@ public class ConnectionHandler implements Runnable, EventListener {
            setRunning(false);
            eventBroadcaster.publish(new NodeDisconnectedEvent(node, getId()));
 
-           nodeRegister.deregisterNode(node.getId());
+           if(node.getId() !=null)
+            nodeRegister.deregisterNode(node.getId());
 
 
            if(!socket.isClosed()) {
@@ -136,6 +124,26 @@ public class ConnectionHandler implements Runnable, EventListener {
 
 
 
+    }
+
+    private void initialPhase() throws IOException, ClassNotFoundException {
+        System.out.println("client has connected!!");
+
+        // first the client
+        clientInitMsg();
+
+
+        System.out.println("client info recved");
+        // notify other nodes that there is a new connected node
+
+        eventBroadcaster.publish(new NodeConnectedEvent(node, getId()));
+        System.out.println("node = " + node);
+        nodeRegister.registerNode(node);
+
+
+        // send the clients the initial list of servers
+        serverInitMsg();
+        System.out.println("server info sent");
     }
 
     private void sendEvent(Event event) throws IOException {

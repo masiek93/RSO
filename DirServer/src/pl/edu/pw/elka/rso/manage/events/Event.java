@@ -4,10 +4,8 @@ import java.io.Serializable;
 
 public abstract class Event implements Serializable {
 
-    private Long sourceId;
+    private Long sourceId; // who generated the event
     private Object data;
-
-
 
     public Event(Object data, Long sourceId) {
         this.data = data;

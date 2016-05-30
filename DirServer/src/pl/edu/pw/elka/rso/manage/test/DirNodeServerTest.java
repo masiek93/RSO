@@ -16,14 +16,8 @@ public class DirNodeServerTest {
 
     public static void main(String[] args) throws IOException, InterruptedException, JAXBException {
 
-
-        List<DirectoryServerConf> dirServer = Config.getInstance().directoryServerList;
-
-        EventBroadcaster eventBroadcaster = EventBroadcaster.getInstance();
         ConnectionListener conList = new ConnectionListener(args[0], Integer.valueOf(args[1]));
-
         conList.start();
-
 
 
         while(conList.isRunning()) {
@@ -32,7 +26,7 @@ public class DirNodeServerTest {
                 System.out.println("servers: ");
                 nodeRegister.getAliveNodes().forEach(System.out::println);
             }
-            Thread.sleep(2000*5);
+            Thread.sleep(2000);
         }
 
 

@@ -48,6 +48,7 @@ public class ConnectionListener implements Runnable {
             try {
                 LongIO.writeLong(idFilePath, id);
             } catch (LongIOException e1) {
+                System.out.println(e1.getMessage());
                 e1.printStackTrace();
             }
         }

@@ -7,24 +7,29 @@ import java.util.concurrent.LinkedBlockingDeque;
 
 /**
  * Broadcast event to all intereseted parties. It works in a publish-subscribe fashion.
+ * Run on a separate thread. The listener subscribes to all events, from all senders.
  *
  */
 public class EventBroadcaster implements Runnable {
 
 
-    private static EventBroadcaster eventBroadcaster = new EventBroadcaster();
+    private static EventBroadcaster eventBroadcaster;
+
+
+    private BlockingQueue<Event> eventsQueue = new LinkedBlockingDeque<>();
+    private List<EventListener> eventListeners = new LinkedList<>();
 
 
     public static EventBroadcaster getInstance() {
+        if(eventBroadcaster == null) {
+            eventBroadcaster = new EventBroadcaster();
+        }
         return eventBroadcaster;
     }
 
     public EventBroadcaster() {
         new Thread(this).start();
     }
-
-    private BlockingQueue<Event> eventsQueue = new LinkedBlockingDeque<>();
-    private List<EventListener> eventListeners = new LinkedList<>();
 
 
 
@@ -34,7 +39,7 @@ public class EventBroadcaster implements Runnable {
     }
 
 
-    /** subscribe to event **/
+    /** subscribe to all event **/
     public synchronized void subscribe(EventListener eventListener) {
         eventListeners.add(eventListener);
     }
