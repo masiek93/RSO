@@ -37,8 +37,6 @@ public abstract class ClientListener implements Runnable {
     protected String idFilePath; // where we are gonna store id
 
 
-    private boolean isConnected;
-
     boolean trying = true; // is it trying to connect
 
     public ClientListener(String idFilePath, NodeType nodeType) {
@@ -54,7 +52,6 @@ public abstract class ClientListener implements Runnable {
         } catch (LongIOException e) {
             // ignore it. Id will be null and it will be requested from the server.
         }
-
         thisNode.setNodeType(nodeType);
         try {
             // register the nodes from configuration
@@ -149,7 +146,7 @@ public abstract class ClientListener implements Runnable {
             setRunning(false);
 
             // unregister the other node
-            if(otherNode.getId() != null) {
+            if(otherNode != null && otherNode.getId() != null) {
                 nodeRegister.deregisterNode(otherNode.getId());
             }
 
@@ -236,8 +233,7 @@ public abstract class ClientListener implements Runnable {
 
         // send type of thisNode
 
-        oStr.writeObject(Messages.nodeTypeMsg(thisNode.getNodeType()));
-
+        oStr.writeObject(Messages.nodeInfo(thisNode));
         // signal to the server that this thisNode is ready
         oStr.writeObject(Messages.readyMsg());
 

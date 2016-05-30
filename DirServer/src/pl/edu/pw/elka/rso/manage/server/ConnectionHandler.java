@@ -199,10 +199,9 @@ public class ConnectionHandler implements Runnable, EventListener {
                     oStr.writeObject(Messages.noMsg());
                 }
                 break;
-            case NODE_TYPE:
+            case INFO:
                 // client sends the type of server
-                NodeType nodeType = (NodeType) data;
-                node.setNodeType(nodeType);
+                node = (Node) data;
                 break;
         }
     }

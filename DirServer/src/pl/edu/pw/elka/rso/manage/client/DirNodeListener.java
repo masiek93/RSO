@@ -35,6 +35,14 @@ public class DirNodeListener extends ClientListener {
                 nret = 0;
             } catch (InterruptedException | IOException e) {
                 nret++;
+            } finally {
+                if(socket != null) {
+                    try {
+                        socket.close();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                }
             }
         }
 

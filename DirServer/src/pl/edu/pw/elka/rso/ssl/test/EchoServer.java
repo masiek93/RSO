@@ -6,6 +6,7 @@ import pl.edu.pw.elka.rso.ssl.SServerSocketFactory;
 import javax.net.ssl.SSLServerSocket;
 import javax.net.ssl.SSLSocket;
 import java.io.*;
+import java.net.ServerSocket;
 import java.net.Socket;
 
 /**
@@ -66,7 +67,7 @@ public class EchoServer {
 
 
     public static void main(String[] args) {
-        SSLServerSocket s = null;
+        ServerSocket s = null;
 
         try {
 

@@ -5,6 +5,7 @@ import pl.edu.pw.elka.rso.ssl.SSocketFactory;
 
 import javax.net.ssl.SSLSocket;
 import java.io.*;
+import java.net.Socket;
 
 public class EchoClient {
 
@@ -12,7 +13,7 @@ public class EchoClient {
     public static void main(String[] args) {
 
         String[] lines = new String[]{"helo", "system", "quit"};
-        SSLSocket s = null;
+        Socket s = null;
 
         try {
             s = SSocketFactory.createSocket("localhost", Config.PORT);

@@ -7,9 +7,14 @@ public class Node implements Serializable {
 
     private NodeType nodeType;
     private Long id;
-    private boolean alive = true;
+    private boolean alive;
     private String address;
     private int port;
+
+    public Node() {
+        this.address = "localhost"; // TODO: change this
+        this.alive = true;
+    }
 
     public String getAddress() {
         return address;
@@ -57,7 +62,7 @@ public class Node implements Serializable {
         if (!(o instanceof Node)) return false;
 
         Node node = (Node) o;
-        return node.getPort() == this.getPort() && node.getAddress().equals(this.getAddress());
+        return node.getPort() == this.getPort() && getAddress().equals(getAddress());
     }
 
     @Override

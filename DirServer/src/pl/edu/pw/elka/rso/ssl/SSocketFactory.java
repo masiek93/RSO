@@ -5,6 +5,7 @@ import javax.net.ssl.SSLSocket;
 import javax.net.ssl.SSLSocketFactory;
 import java.io.IOException;
 import java.net.InetAddress;
+import java.net.Socket;
 
 
 public class SSocketFactory {
@@ -24,14 +25,15 @@ public class SSocketFactory {
 
     }
 
-    public static synchronized SSLSocket createSocket(String host, int port) throws IOException {
-        if (!configRead) {
-            readConfig();
-            configRead = true;
-        }
-
-        SSLSocket sslSocket = (SSLSocket) SSLSocketFactory.getDefault().createSocket(host, port);
-        return sslSocket;
+    public static synchronized Socket createSocket(String host, int port) throws IOException {
+//        if (!configRead) {
+//            readConfig();
+//            configRead = true;
+//        }
+//
+//        SSLSocket sslSocket = (SSLSocket) SSLSocketFactory.getDefault().createSocket(host, port);
+//        return sslSocket;
+        return new Socket(host, port);
     }
 
     public static synchronized SSLSocket createSocket(InetAddress hostAddress, int port) throws IOException {

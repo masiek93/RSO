@@ -1,8 +1,11 @@
 package pl.edu.pw.elka.rso.manage.messages;
 
 import pl.edu.pw.elka.rso.manage.events.Event;
+import pl.edu.pw.elka.rso.manage.node.Node;
 import pl.edu.pw.elka.rso.manage.node.NodeRegister;
 import pl.edu.pw.elka.rso.manage.node.NodeType;
+
+import java.awt.*;
 
 public class Messages {
 
@@ -60,5 +63,8 @@ public class Messages {
     }
 
 
+    public static Message nodeInfo(Node node) {
+        return new Message(Type.INFO, node);
+    }
 
 }

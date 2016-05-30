@@ -4,6 +4,7 @@ package pl.edu.pw.elka.rso.ssl;
 import javax.net.ssl.SSLServerSocket;
 import javax.net.ssl.SSLServerSocketFactory;
 import java.io.IOException;
+import java.net.ServerSocket;
 
 /**
  * Secure server socket factory.
@@ -26,17 +27,18 @@ public class SServerSocketFactory {
 
     }
 
-    public static synchronized SSLServerSocket createServerSocket(int port) throws IOException {
-
-        if (!configRead) {
-            configRead = true;
-            readConfig();
-        }
-
-        SSLServerSocketFactory sslServerSocketFactory = (SSLServerSocketFactory) SSLServerSocketFactory.getDefault();
-        SSLServerSocket serverSocket = (SSLServerSocket) sslServerSocketFactory.createServerSocket(port);
-
-        return serverSocket;
+    public static synchronized ServerSocket createServerSocket(int port) throws IOException {
+        return new ServerSocket(port);
+//
+//        if (!configRead) {
+//            configRead = true;
+//            readConfig();
+//        }
+//
+//        SSLServerSocketFactory sslServerSocketFactory = (SSLServerSocketFactory) SSLServerSocketFactory.getDefault();
+//        SSLServerSocket serverSocket = (SSLServerSocket) sslServerSocketFactory.createServerSocket(port);
+//
+//        return serverSocket;
     }
 
     public static synchronized SSLServerSocket createServerSocket(int port, int backlog) throws IOException {

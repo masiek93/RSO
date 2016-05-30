@@ -22,15 +22,15 @@ public class DirNodeClientTest {
         ConnectionListener conList = new ConnectionListener(args[0], Integer.valueOf(args[1]));
         conList.start();
 
+        System.out.println("runnng server in a new process");
 
-        System.out.println("runnng server");
         while(conList.isRunning()) {
             NodeRegister nodeRegister = NodeRegister.getInstance();
             if(nodeRegister != null) {
                 System.out.println("servers: ");
                 nodeRegister.getAliveNodes().forEach(System.out::println);
             }
-            Thread.sleep(2000*5);
+            Thread.sleep(2000);
         }
 
 
