@@ -9,14 +9,14 @@ import pl.edu.pw.elka.rso.ssl.SSocketFactory;
 import java.io.IOException;
 import java.net.Socket;
 
-public class ClientTest {
+public class FileNodeClientTest {
 
     public static void main(String[] args) throws IOException, InterruptedException {
-        Socket socket = SSocketFactory.createSocket(Config.serverAddress, Config.port);
-        ClientListener cli = ClientListener.FileServerListener(args[0], socket);
+
+        ClientListener cli = ClientListener.FileServerListener(args[0]);
         cli.start();
 
-        while(true) {
+        while(cli.isRunning()) {
             NodeRegister nodeRegister = cli.getNodeRegister();
             if(nodeRegister != null) {
                 System.out.println("servers: ");

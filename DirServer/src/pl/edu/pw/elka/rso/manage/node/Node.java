@@ -8,6 +8,24 @@ public class Node implements Serializable {
     private NodeType nodeType;
     private Long id;
     private boolean alive = true;
+    private String address;
+    private int port;
+
+    public String getAddress() {
+        return address;
+    }
+
+    public void setAddress(String address) {
+        this.address = address;
+    }
+
+    public int getPort() {
+        return port;
+    }
+
+    public void setPort(int port) {
+        this.port = port;
+    }
 
     public Long getId() {
         return id;
@@ -39,11 +57,7 @@ public class Node implements Serializable {
         if (!(o instanceof Node)) return false;
 
         Node node = (Node) o;
-
-        if (id != null ? !id.equals(node.id) : node.id != null) return false;
-        if (nodeType != node.nodeType) return false;
-
-        return true;
+        return node.getPort() == this.getPort() && node.getAddress().equals(this.getAddress());
     }
 
     @Override
@@ -56,10 +70,16 @@ public class Node implements Serializable {
     @Override
     public String toString() {
         return "Node{" +
-                "alive=" + alive +
+                "address='" + address + '\'' +
                 ", nodeType=" + nodeType +
                 ", id=" + id +
+                ", alive=" + alive +
+                ", port=" + port +
                 '}';
+    }
+
+    public  boolean isDirectoryServer() {
+        return getNodeType() == NodeType.DIRECTORY_NODE;
     }
 }
 

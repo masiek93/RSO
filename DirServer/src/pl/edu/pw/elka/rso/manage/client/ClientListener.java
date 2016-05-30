@@ -8,9 +8,12 @@ import pl.edu.pw.elka.rso.manage.messages.Messages;
 import pl.edu.pw.elka.rso.manage.node.Node;
 import pl.edu.pw.elka.rso.manage.node.NodeRegister;
 import pl.edu.pw.elka.rso.manage.node.NodeType;
+import pl.edu.pw.elka.rso.manage.util.Config;
 import pl.edu.pw.elka.rso.manage.util.LongIO;
 import pl.edu.pw.elka.rso.manage.util.LongIOException;
+import pl.edu.pw.elka.rso.ssl.SSocketFactory;
 
+import javax.xml.bind.JAXBException;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
@@ -27,51 +30,69 @@ public class ClientListener implements Runnable {
 
 
     private boolean idChanged = false;
-    private NodeRegister nodeRegister;
+    private NodeRegister nodeRegister = NodeRegister.getInstance();
 
-    private String filePath; // where we are gonna keep id
+    private String idFilePath; // where we are gonna store id
 
-    public ClientListener(String filePath, Socket socket, NodeType nodeType) {
+    private Node directoryServerNode;
 
-        if(filePath != null) {
-            try {
-                node.setId(LongIO.readLong(filePath));
-            } catch (LongIOException e) {
-            }
-            this.filePath = filePath;
+
+
+    public ClientListener(String idFilePath, NodeType nodeType) {
+
+        if(idFilePath != null) {
+            this.idFilePath = idFilePath;
         } else {
-            this.filePath = "id.txt";
+            this.idFilePath = "resources/gen/id.txt";
         }
 
-        this.socket = socket;
+        try {
+            node.setId(LongIO.readLong(idFilePath));
+        } catch (LongIOException e) {
+
+        }
+
+
         node.setNodeType(nodeType);
-
+        try {
+            nodeRegister.initFromConf(Config.getInstance().directoryServerList);
+        } catch (IOException e) {
+            e.printStackTrace();
+        } catch (JAXBException e) {
+            e.printStackTrace();
+        }
 
     }
 
-    public static ClientListener FileServerListener(String idFilePath, Socket socket) {
-        return new ClientListener(idFilePath, socket, NodeType.FILE_NODE);
+    public ClientListener(String idFilePath, NodeType directoryNode, Node dirServer) {
+        this(idFilePath, directoryNode);
+        this.directoryServerNode = dirServer;
+    }
+
+    public static ClientListener FileServerListener(String idFilePath) {
+        return new ClientListener(idFilePath, NodeType.FILE_NODE);
     }
 
 
-    public static ClientListener FileServerListener(Socket socket) {
-        return new ClientListener(null, socket, NodeType.FILE_NODE);
+    public static ClientListener FileServerListener() {
+        return new ClientListener(null, NodeType.FILE_NODE);
     }
 
-    public static ClientListener DirectoryServerListener(String idFilePath, Socket socket) {
-        return new ClientListener(idFilePath, socket, NodeType.DIRECTORY_NODE);
+    public static ClientListener DirectoryServerListener(String idFilePath, Node dirServer) {
+        return new ClientListener(null, NodeType.DIRECTORY_NODE, dirServer);
     }
 
-
-    public static ClientListener DirectoryServerListener(Long id, Socket socket) {
-        return new ClientListener(null, socket, NodeType.DIRECTORY_NODE);
+    public static ClientListener DirectoryServerListener(String idFilePath) {
+        return new ClientListener(null, NodeType.DIRECTORY_NODE, null);
     }
 
 
 
     public void start() {
         setRunning(true);
-        new Thread(this).start();
+        Thread t = new Thread(this);
+        t.setDaemon(true);
+        t.start();
     }
 
     public synchronized boolean isRunning() {
@@ -93,6 +114,9 @@ public class ClientListener implements Runnable {
     @Override
     public void run() {
         try{
+
+            pickServer();
+
             iStr = new ObjectInputStream(socket.getInputStream());
             oStr = new ObjectOutputStream(socket.getOutputStream());
 
@@ -125,9 +149,7 @@ public class ClientListener implements Runnable {
 
 
 
-        } catch (IOException e) {
-            e.printStackTrace();
-        } catch (ClassNotFoundException e) {
+        } catch (IOException | InterruptedException | ClassNotFoundException e) {
             e.printStackTrace();
         } finally {
             setRunning(false);
@@ -141,6 +163,26 @@ public class ClientListener implements Runnable {
         }
 
     }
+
+
+    private void pickServer() throws InterruptedException, IOException {
+        for(Node node: nodeRegister.getDirectoryNodes()) {
+            System.out.println("trying to connect with node: " +  node);
+            if(directoryServerNode != null && directoryServerNode.equals(node)) {
+                continue; // don't let client connect with its own server
+            }
+            try {
+                socket = SSocketFactory.createSocket(node.getAddress(), node.getPort());
+                System.out.println("connected to " + node);
+                return;
+            } catch (IOException e) {
+                System.out.println("cannot establish connection " + e);
+            }
+        }
+        System.out.println("Could not establish connection");
+        throw new IOException("Cannot establish connection with any server");
+    }
+
 
     private void recvEvent(Event data) {
 
@@ -160,7 +202,8 @@ public class ClientListener implements Runnable {
 
     private void serverInitMsg() throws IOException, ClassNotFoundException {
         Message msg = (Message) iStr.readObject();
-        nodeRegister = (NodeRegister) msg.getData();
+        nodeRegister.clear();
+        nodeRegister.update((NodeRegister) msg.getData());
     }
 
     private void clientInitMsg() throws IOException, ClassNotFoundException {
@@ -174,15 +217,13 @@ public class ClientListener implements Runnable {
             idChanged = true;
 
         } else {
-            oStr.writeObject(Messages.showIdMsg());
+            oStr.writeObject(Messages.showIdMsg(getId()));
             Message msg = (Message) iStr.readObject();
             if(msg.getCode() == Code.YES) {
                 // ok
                 idChanged = false;
-
             } else {
                 // server didnt accept the message
-
                 node.setId(null);
                 clientInitMsg();
             }
@@ -197,7 +238,7 @@ public class ClientListener implements Runnable {
         // write it to file if it has changed
         if(idChanged) {
             try {
-                LongIO.writeLong(filePath, getId());
+                LongIO.writeLong(idFilePath, getId());
             } catch (LongIOException e) {
                 e.printStackTrace();
             }

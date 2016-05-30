@@ -22,8 +22,8 @@ public class Messages {
         return new Message(Type.ID_RES, id);
     }
 
-    public static Message showIdMsg() {
-        return new Message(Type.ID_SHOW);
+    public static Message showIdMsg(Long idMsg) {
+        return new Message(Type.ID_SHOW, idMsg);
     }
 
     public static Message yesMsg() {

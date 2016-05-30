@@ -202,6 +202,7 @@ public class ConnectionHandler implements Runnable, EventListener {
 
     @Override
     public void notify(Event event) {
+        System.out.println("publish/subscribe has notified client handler");
         eventQueue.offer(event);
     }
 

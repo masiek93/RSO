@@ -1,6 +1,8 @@
 package pl.edu.pw.elka.rso.manage.node;
 
 
+import pl.edu.pw.elka.rso.manage.util.DirectoryServerConf;
+
 import java.io.Serializable;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
@@ -12,6 +14,8 @@ public class NodeRegister implements Serializable {
     private static NodeRegister nodeRegistery;
     private Map<Long, Node> nodes;
 
+
+    private static Long tempId = 0l; /** temporary id, in case when there is no id **/
 
     public static NodeRegister getInstance() {
         if(nodeRegistery == null) {
@@ -33,7 +37,11 @@ public class NodeRegister implements Serializable {
     }
 
     public void addNode(Node node) {
-        nodes.put(node.getId(), node);
+        if(node.getId() == null) {
+            nodes.put(tempId++, node);
+        } else {
+            nodes.put(node.getId(), node);
+        }
     }
 
     public synchronized void deregisterNode(Long id) {
@@ -56,4 +64,32 @@ public class NodeRegister implements Serializable {
     }
 
 
+
+    public void update(NodeRegister other) {
+        for(Long k: other.nodes.keySet()) {
+            if (!nodes.containsKey(k)) {
+                nodes.put(k, other.nodes.get(k));
+            }
+        }
+    }
+
+
+    public void initFromConf(Collection<DirectoryServerConf> directoryServerList) {
+        for(DirectoryServerConf directoryServerConf: directoryServerList) {
+            Node node = new Node();
+            node.setAlive(true);
+            node.setAddress(directoryServerConf.address);
+            node.setPort(directoryServerConf.nodesManagementPort);
+            node.setNodeType(NodeType.DIRECTORY_NODE);
+            addNode(node);
+        }
+    }
+
+    public Collection<Node> getAliveDirectoryNodes() {
+        return getAliveNodes().stream().filter(Node::isDirectoryServer).collect(Collectors.toList());
+    }
+
+    public Collection<Node> getDirectoryNodes() {
+        return getNodes().stream().filter(Node::isDirectoryServer).collect(Collectors.toList());
+    }
 }

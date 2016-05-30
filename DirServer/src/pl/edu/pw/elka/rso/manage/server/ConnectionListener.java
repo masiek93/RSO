@@ -5,13 +5,14 @@ import pl.edu.pw.elka.rso.manage.node.NodeRegister;
 import pl.edu.pw.elka.rso.manage.node.NodeType;
 import pl.edu.pw.elka.rso.manage.util.LongIO;
 import pl.edu.pw.elka.rso.manage.util.LongIOException;
+import pl.edu.pw.elka.rso.ssl.SServerSocketFactory;
 
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
 
 /**
- * This class listens for new connectio and dispatch new worker threads
+ * This class listens for new connections and dispatch new worker threads
  * for server handling.
  */
 public class ConnectionListener implements Runnable {
@@ -22,15 +23,23 @@ public class ConnectionListener implements Runnable {
 
     String idFilePath;
 
-    public ConnectionListener(String idFilePath, ServerSocket serverSocket) {
-        this.serverSocket = serverSocket;
+    public ConnectionListener(String idFilePath, int port) throws IOException {
 
-        // connection listener register itself
+
         if(idFilePath == null) {
             this.idFilePath = "id.txt";
         } else {
             this.idFilePath = idFilePath;
         }
+        setupNodeConfiguration(port);
+
+        this.serverSocket = SServerSocketFactory.createServerSocket(node.getPort());
+
+    }
+
+    private void setupNodeConfiguration(int port) {
+        // connection listener register itself
+
         Long id = null;
         try {
             id = LongIO.readLong(this.idFilePath);
@@ -44,9 +53,9 @@ public class ConnectionListener implements Runnable {
         }
         node.setId(id);
         node.setNodeType(NodeType.DIRECTORY_NODE);
+        node.setPort(port);
 
         NodeRegister.getInstance().registerNode(node);
-
     }
 
 
@@ -88,5 +97,9 @@ public class ConnectionListener implements Runnable {
         }
 
 
+    }
+
+    public Node getNode() {
+        return node;
     }
 }
