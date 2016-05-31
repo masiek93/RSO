@@ -1,9 +1,13 @@
 package pl.edu.pw.elka.rso.manage.events;
 
 
+/**
+ * Class implementing this must also implements equals and hashcode.
+ */
 public interface EventListener {
     /**
-     * It must last for a short time.
+     * It must last for a short time. If it is a long running task it should dispatch a new thread for
+     * service.
      * @param event event
      */
     public void notify(Event event);

@@ -2,6 +2,8 @@ package pl.edu.pw.elka.rso.manage.client;
 
 
 import pl.edu.pw.elka.rso.manage.events.Event;
+import pl.edu.pw.elka.rso.manage.events.EventType;
+import pl.edu.pw.elka.rso.manage.events.Handler;
 import pl.edu.pw.elka.rso.manage.messages.Code;
 import pl.edu.pw.elka.rso.manage.messages.Message;
 import pl.edu.pw.elka.rso.manage.messages.Messages;
@@ -18,6 +20,8 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
+import java.util.HashMap;
+import java.util.Map;
 
 public abstract class ClientListener implements Runnable {
 
@@ -32,12 +36,14 @@ public abstract class ClientListener implements Runnable {
     protected Node otherNode; // data describing the other thisNode (manager)
 
     protected boolean idChanged = false;  // if id changes then the client should persist this information
-
     protected NodeRegister nodeRegister = NodeRegister.getInstance();
     protected String idFilePath; // where we are gonna store id
 
-
     boolean trying = true; // is it trying to connect
+
+
+    protected Map<EventType, Handler> handlers = new HashMap<>(); // for event handling
+
 
     public ClientListener(String idFilePath, NodeType nodeType) {
 
@@ -53,6 +59,7 @@ public abstract class ClientListener implements Runnable {
             // ignore it. Id will be null and it will be requested from the server.
         }
         thisNode.setNodeType(nodeType);
+        thisNode.setAlive(true);
         try {
             // register the nodes from configuration
             nodeRegister.initFromConf(Config.getInstance().directoryServerList);
@@ -61,7 +68,43 @@ public abstract class ClientListener implements Runnable {
             e.printStackTrace();
         }
 
+        setUpHandlers();
     }
+
+
+    private void setUpHandlers() {
+        setUpBasicHandlers();
+        setUpSpecificHandlers();
+    }
+
+    /**
+     * Set up basic handlers.
+     */
+    protected void setUpBasicHandlers() {
+        handlers.put(EventType.NODE_CONNECTED_EVENT, new Handler() {
+            @Override
+            public void handleEvent(Event event) {
+                Node node = (Node)event.getData();
+                nodeRegister.registerNode(node);
+            }
+        });
+
+        handlers.put(EventType.NODE_DISCONNECTED_EVENT, new Handler() {
+            @Override
+            public void handleEvent(Event event) {
+                Node node = (Node)event.getData();
+                nodeRegister.deregisterNode(node.getId());
+            }
+        });
+
+    }
+
+
+    /**
+     * Set up specific handlers
+     */
+    protected abstract void setUpSpecificHandlers();
+
 
     public synchronized void setTrying(boolean trying)
     {
@@ -98,12 +141,13 @@ public abstract class ClientListener implements Runnable {
 
     public void initialPhase() throws IOException, ClassNotFoundException {
 
-        System.out.println("connected to directory node");
+
         // first the client its information (parameters, id requests, etc.)
         clientInitMsg();
         // server sends its information (nodes that it sees, etc)
         serverInitMsg();
-        System.out.println("sever info recieved. Initial phase finished");
+
+        System.out.println("initial phase completed with " + otherNode);
     }
 
 
@@ -134,10 +178,9 @@ public abstract class ClientListener implements Runnable {
                         oStr.writeObject(Messages.pongMsg());
                         break;
                     case EVENT:
-                        recvEvent((Event)msg.getData());
+                        handleEvent((Event) msg.getData());
                         break;
                 }
-                System.out.println("client recved: " + msg);
             }
 
         } catch (IOException | ClassNotFoundException e) {
@@ -164,7 +207,6 @@ public abstract class ClientListener implements Runnable {
 
     protected void pickServer() throws InterruptedException, IOException {
         for(Node node: nodeRegister.getDirectoryNodes()) {
-            System.out.println("trying to connect with node: " +  node);
 
             // TODO: handle the case when client connects to its own server
             try {
@@ -173,33 +215,26 @@ public abstract class ClientListener implements Runnable {
                 System.out.println("connected to " + node);
                 return;
             } catch (IOException e) {
-                System.out.println("cannot establish connection " + e);
+
             }
         }
-        System.out.println("Could not establish connection");
         throw new IOException("Cannot establish connection with any server");
     }
 
 
-    private void recvEvent(Event data) {
 
-        System.out.println("event " + data + " has been received");
-        switch (data.getType()) {
-            case NODE_CONNECTED_EVENT:
-                 Node node = (Node)data.getData();
-                 nodeRegister.registerNode(node);
-                 break;
-            case NODE_DISCONNECTED_EVENT:
-                 node = (Node)data.getData();
-                 nodeRegister.deregisterNode(node.getId());
-                break;
 
+    private void handleEvent(Event data) {
+        System.out.println("received new event " + data);
+        Handler h = handlers.get(data.getType());
+        if(h != null) {
+            h.handleEvent(data);
         }
     }
 
     private void serverInitMsg() throws IOException, ClassNotFoundException {
+
         Message msg = (Message) iStr.readObject();
-        nodeRegister.clear(); // discard everything that we saw. Refresh this node's information
         nodeRegister.update((NodeRegister) msg.getData());
     }
 
@@ -246,12 +281,9 @@ public abstract class ClientListener implements Runnable {
             }
         }
 
-        System.out.println("client received an id: " + getId());
+        System.out.println("client has sent its parameters: " + thisNode);
     }
 
-    public NodeRegister getNodeRegister() {
-        return nodeRegister;
-    }
 
 
 }

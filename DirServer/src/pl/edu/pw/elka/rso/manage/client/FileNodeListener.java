@@ -29,6 +29,7 @@ public class FileNodeListener extends ClientListener {
             } catch (InterruptedException | IOException e) {
                 try {
                     Thread.sleep(RETRY_PERIOD_MS);
+                    System.out.println("waiting for any dir node server");
                 } catch (InterruptedException e1) {
                     e1.printStackTrace();
                 }
@@ -38,4 +39,11 @@ public class FileNodeListener extends ClientListener {
         }
 
     }
+
+    @Override
+    protected void setUpSpecificHandlers() {
+        // nothing specific
+    }
+
+
 }

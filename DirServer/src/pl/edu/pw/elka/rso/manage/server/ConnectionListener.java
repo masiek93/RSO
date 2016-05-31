@@ -19,7 +19,7 @@ public class ConnectionListener implements Runnable {
 
     boolean running;
     ServerSocket serverSocket;
-    Node node = new Node();
+    Node thisNode = new Node();
 
     String idFilePath;
 
@@ -32,8 +32,7 @@ public class ConnectionListener implements Runnable {
             this.idFilePath = idFilePath;
         }
         setupNodeConfiguration(port);
-
-        this.serverSocket = SServerSocketFactory.createServerSocket(node.getPort());
+        this.serverSocket = SServerSocketFactory.createServerSocket(thisNode.getPort());
 
     }
 
@@ -41,6 +40,7 @@ public class ConnectionListener implements Runnable {
         // connection listener register itself
 
         Long id = null;
+
         try {
             id = LongIO.readLong(this.idFilePath);
         } catch (LongIOException e) {
@@ -52,11 +52,10 @@ public class ConnectionListener implements Runnable {
                 e1.printStackTrace();
             }
         }
-        node.setId(id);
-        node.setNodeType(NodeType.DIRECTORY_NODE);
-        node.setPort(port);
-
-        NodeRegister.getInstance().registerNode(node);
+        thisNode.setId(id);
+        thisNode.setNodeType(NodeType.DIRECTORY_NODE);
+        thisNode.setPort(port);
+        NodeRegister.getInstance().registerNode(thisNode);
     }
 
 
@@ -76,7 +75,7 @@ public class ConnectionListener implements Runnable {
     @Override
     public void run() {
         try {
-            System.out.println("server is ready for new connections");
+            System.out.println("server " + thisNode + "  is ready for new connections");
             while (isRunning()) {
 
                 Socket sock = serverSocket.accept();
@@ -84,7 +83,6 @@ public class ConnectionListener implements Runnable {
             }
         } catch (IOException e) {
             e.printStackTrace();
-
 
         } finally {
             setRunning(false); // in case there was an exception
@@ -100,7 +98,7 @@ public class ConnectionListener implements Runnable {
 
     }
 
-    public Node getNode() {
-        return node;
+    public Node getThisNode() {
+        return thisNode;
     }
 }

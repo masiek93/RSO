@@ -52,7 +52,12 @@ public class NodeRegister implements Serializable {
     }
 
     public void registerNode(Node node) {
-        nodes.put(node.getId(), node);
+        if(nodes.containsKey(node.getId())) {
+            nodes.get(node.getId()).setAlive(true);
+        } else {
+            nodes.put(node.getId(), node);
+        }
+
     }
 
     public Collection<Node> getNodes() {
@@ -69,6 +74,8 @@ public class NodeRegister implements Serializable {
         for(Long k: other.nodes.keySet()) {
             if (!nodes.containsKey(k)) {
                 nodes.put(k, other.nodes.get(k));
+            } else if(!nodes.get(k).isAlive()) {
+                nodes.get(k).setAlive(other.nodes.get(k).isAlive());
             }
         }
     }
@@ -77,6 +84,7 @@ public class NodeRegister implements Serializable {
     public void initFromConf(Collection<DirectoryServerConf> directoryServerList) {
         for(DirectoryServerConf directoryServerConf: directoryServerList) {
             Node node = new Node();
+            node.setId(directoryServerConf.id);
             node.setAlive(true);
             node.setAddress(directoryServerConf.address);
             node.setPort(directoryServerConf.nodesManagementPort);

@@ -10,7 +10,7 @@ import pl.edu.pw.elka.rso.ssl.SSocketFactory;
 import java.io.IOException;
 import java.net.Socket;
 
-public class FileNodeClientTest {
+public class FileNodeTest {
 
     public static void main(String[] args) throws IOException, InterruptedException {
 
@@ -19,15 +19,15 @@ public class FileNodeClientTest {
 
         while(cli.isTrying()) {
             while(cli.isRunning()) {
-                NodeRegister nodeRegister = cli.getNodeRegister();
+                NodeRegister nodeRegister = NodeRegister.getInstance();
                 if (nodeRegister != null) {
                     System.out.println("servers: ");
-                    nodeRegister.getAliveNodes().forEach(System.out::println);
+                    nodeRegister.getNodes().forEach(System.out::println);
                 }
                 Thread.sleep(2000 * 5);
             }
             Thread.sleep(200);
         }
-
     }
+
 }

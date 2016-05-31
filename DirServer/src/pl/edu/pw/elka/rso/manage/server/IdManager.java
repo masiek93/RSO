@@ -29,7 +29,7 @@ public class IdManager {
 
     public synchronized static IdManager getInstance() {
         if(idManager == null) {
-            idManager = new IdManager("resources/gen/serial_id.txt");
+            idManager = new IdManager("resources/gen/IdSerial.txt");
         }
 
         return idManager;

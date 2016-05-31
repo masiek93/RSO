@@ -1,16 +1,11 @@
 package pl.edu.pw.elka.rso.manage.test;
 
 
-import pl.edu.pw.elka.rso.manage.client.ClientListener;
-import pl.edu.pw.elka.rso.manage.events.EventBroadcaster;
 import pl.edu.pw.elka.rso.manage.node.NodeRegister;
 import pl.edu.pw.elka.rso.manage.server.ConnectionListener;
-import pl.edu.pw.elka.rso.manage.util.Config;
-import pl.edu.pw.elka.rso.manage.util.DirectoryServerConf;
 
 import javax.xml.bind.JAXBException;
 import java.io.IOException;
-import java.util.List;
 
 public class DirNodeServerTest {
 

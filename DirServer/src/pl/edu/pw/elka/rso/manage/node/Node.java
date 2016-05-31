@@ -13,7 +13,7 @@ public class Node implements Serializable {
 
     public Node() {
         this.address = "localhost"; // TODO: change this
-        this.alive = true;
+       // this.alive = true;
     }
 
     public String getAddress() {

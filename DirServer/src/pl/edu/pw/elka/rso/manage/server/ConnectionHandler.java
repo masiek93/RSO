@@ -28,18 +28,21 @@ public class ConnectionHandler implements Runnable, EventListener {
     boolean running;
 
     Queue<Event> eventQueue = new ConcurrentLinkedDeque<>();
-    EventBroadcaster eventBroadcaster; // broadcast some events
+    EventBus eventBus;
     NodeRegister nodeRegister = NodeRegister.getInstance();
-    Node node;
+
+    Node clientNode;
 
 
     public ConnectionHandler(Socket sock) {
 
         this.socket = sock;
 
-        eventBroadcaster = EventBroadcaster.getInstance();
-        eventBroadcaster.subscribe(this);
-        node = new Node();
+        eventBus = EventBus.getInstance();
+        eventBus.subscribeToEvent(this, EventType.NODE_CONNECTED_EVENT);
+        eventBus.subscribeToEvent(this, EventType.NODE_DISCONNECTED_EVENT);
+
+        clientNode = new Node();
     }
 
     public void start() {
@@ -66,6 +69,9 @@ public class ConnectionHandler implements Runnable, EventListener {
 
            initialPhase();
 
+           if(clientNode.getNodeType() == NodeType.DIRECTORY_NODE) {
+               eventBus.subscribeToEvent(this, EventType.DIR_NODE_SYNCHRO);
+           }
 
            while(isRunning()) {
                try {
@@ -74,17 +80,19 @@ public class ConnectionHandler implements Runnable, EventListener {
 
                         oStr.writeObject(Messages.pingMsg());
                         Message msg = (Message) iStr.readObject();
-                        if(msg.getType() == Type.PONG) {
-                            // ok
-                        } else {
-                            tryToSolveError(msg);
-                        }
+//                        if(msg.getType() == Type.PONG) {
+//                            // ok
+//                        } else {
+//                            tryToSolveError(msg);
+//                        }
 
                    } else {
                        Event ev = eventQueue.poll();
-                       System.out.println("new event " +  ev + " is sent to id = " + node.getId());
-                       // process events
-                       sendEvent(ev);
+                       if(ev != null) {
+                           System.out.println("new event " + ev + " is sent to id = " + clientNode.getId());
+                           // process events
+                           sendEvent(ev);
+                       }
                    }
 
                    TimeUnit.MILLISECONDS.sleep(SLEEP_PERIOD_MS);
@@ -106,10 +114,10 @@ public class ConnectionHandler implements Runnable, EventListener {
 
        } finally {
            setRunning(false);
-           eventBroadcaster.publish(new NodeDisconnectedEvent(node, getId()));
+           eventBus.publish(new NodeDisconnectedEvent(clientNode, clientNode.getId()));
 
-           if(node.getId() !=null)
-            nodeRegister.deregisterNode(node.getId());
+           if(clientNode.getId() !=null)
+                nodeRegister.deregisterNode(clientNode.getId());
 
 
            if(!socket.isClosed()) {
@@ -134,11 +142,11 @@ public class ConnectionHandler implements Runnable, EventListener {
 
 
         System.out.println("client info recved");
-        // notify other nodes that there is a new connected node
+        // notify other nodes that there is a new connected thisNode
 
-        eventBroadcaster.publish(new NodeConnectedEvent(node, getId()));
-        System.out.println("node = " + node);
-        nodeRegister.registerNode(node);
+        eventBus.publish(new NodeConnectedEvent(clientNode, clientNode.getId()));
+        System.out.println("thisNode = " + clientNode);
+        nodeRegister.registerNode(clientNode);
 
 
         // send the clients the initial list of servers
@@ -186,14 +194,14 @@ public class ConnectionHandler implements Runnable, EventListener {
 
         switch (msg.getType()) {
             case ID_REQ:
-                node.setId(idMng.newId());
-                oStr.writeObject(Messages.responseIdMsg(node.getId()));
+                clientNode.setId(idMng.newId());
+                oStr.writeObject(Messages.responseIdMsg(clientNode.getId()));
                 break;
             case ID_SHOW:
                 // client request id to be accepted by the server
                 Long recvId = (Long) data;
                 if (idMng.isOk(recvId)) {
-                    node.setId(recvId);
+                    clientNode.setId(recvId);
                     oStr.writeObject(Messages.yesMsg());
                 } else {
                     oStr.writeObject(Messages.noMsg());
@@ -201,7 +209,7 @@ public class ConnectionHandler implements Runnable, EventListener {
                 break;
             case INFO:
                 // client sends the type of server
-                node = (Node) data;
+                clientNode = (Node) data;
                 break;
         }
     }
@@ -209,14 +217,49 @@ public class ConnectionHandler implements Runnable, EventListener {
 
     @Override
     public void notify(Event event) {
-        System.out.println("publish/subscribe has notified client handler");
+        System.out.println(clientNode + " is going to receive event " + event);
         eventQueue.offer(event);
     }
 
+
+
     @Override
     public Long getId() {
-        return node.getId();
+        return clientNode.getId();
     }
 
 
+    // auto generated
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof ConnectionHandler)) return false;
+
+        ConnectionHandler that = (ConnectionHandler) o;
+
+        if (running != that.running) return false;
+        if (eventBus != null ? !eventBus.equals(that.eventBus) : that.eventBus != null) return false;
+        if (eventQueue != null ? !eventQueue.equals(that.eventQueue) : that.eventQueue != null) return false;
+        if (iStr != null ? !iStr.equals(that.iStr) : that.iStr != null) return false;
+        if (clientNode != null ? !clientNode.equals(that.clientNode) : that.clientNode != null) return false;
+        if (nodeRegister != null ? !nodeRegister.equals(that.nodeRegister) : that.nodeRegister != null) return false;
+        if (oStr != null ? !oStr.equals(that.oStr) : that.oStr != null) return false;
+        if (socket != null ? !socket.equals(that.socket) : that.socket != null) return false;
+
+        return true;
+    }
+
+    @Override
+    public int hashCode() {
+        int result = socket != null ? socket.hashCode() : 0;
+        result = 31 * result + (iStr != null ? iStr.hashCode() : 0);
+        result = 31 * result + (oStr != null ? oStr.hashCode() : 0);
+        result = 31 * result + (running ? 1 : 0);
+        result = 31 * result + (eventQueue != null ? eventQueue.hashCode() : 0);
+        result = 31 * result + (eventBus != null ? eventBus.hashCode() : 0);
+        result = 31 * result + (nodeRegister != null ? nodeRegister.hashCode() : 0);
+        result = 31 * result + (clientNode != null ? clientNode.hashCode() : 0);
+        return result;
+    }
 }
