@@ -39,6 +39,7 @@ public class IdManager {
         Long ret = start++;
         try {
             LongIO.writeLong(serialIdFilePath, start);
+            // TODO: generate synchro event
         } catch (LongIOException e) {
             e.printStackTrace();
         }
@@ -46,6 +47,7 @@ public class IdManager {
     }
 
     public synchronized boolean isOk(Long id) {
+        // whether this id is ok. simple method.
         return id < start;
     }
 

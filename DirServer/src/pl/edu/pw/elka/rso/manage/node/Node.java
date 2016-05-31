@@ -12,8 +12,7 @@ public class Node implements Serializable {
     private int port;
 
     public Node() {
-        this.address = "localhost"; // TODO: change this
-       // this.alive = true;
+        this.address = "localhost"; // TODO: fetch the address of this server automatically. https://stackoverflow.com/questions/9481865/getting-the-ip-address-of-the-current-machine-using-java
     }
 
     public String getAddress() {
@@ -83,7 +82,7 @@ public class Node implements Serializable {
                 '}';
     }
 
-    public  boolean isDirectoryServer() {
+    public boolean isDirectoryServer() {
         return getNodeType() == NodeType.DIRECTORY_NODE;
     }
 }

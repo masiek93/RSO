@@ -24,7 +24,7 @@ public class DirNodeClientTest {
         c.start();
 
         while (c.isTrying()) {
-            while (c.isRunning()) {
+            while (c.isConnected()) {
                 NodeRegister nodeRegister = NodeRegister.getInstance();
                 if (nodeRegister != null) {
                     System.out.println("servers: ");

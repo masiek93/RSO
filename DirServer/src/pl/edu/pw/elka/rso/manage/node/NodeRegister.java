@@ -4,10 +4,15 @@ package pl.edu.pw.elka.rso.manage.node;
 import pl.edu.pw.elka.rso.manage.util.DirectoryServerConf;
 
 import java.io.Serializable;
-import java.util.*;
+import java.util.Collection;
+import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
+/**
+ * Global and a single object for the whole application. It maintains the register of the nodes in the system.
+ * Instead of removing dead server, it just mark them as dead.
+ */
 public class NodeRegister implements Serializable {
 
 
@@ -15,10 +20,14 @@ public class NodeRegister implements Serializable {
     private Map<Long, Node> nodes;
 
 
-    private static Long tempId = 0l; /** temporary id, in case when there is no id **/
+    private static Long tempId = 0l;
+
+    /**
+     * temporary id, in case when there is no id *
+     */
 
     public static NodeRegister getInstance() {
-        if(nodeRegistery == null) {
+        if (nodeRegistery == null) {
             nodeRegistery = new NodeRegister();
         }
         return nodeRegistery;
@@ -37,7 +46,7 @@ public class NodeRegister implements Serializable {
     }
 
     public void addNode(Node node) {
-        if(node.getId() == null) {
+        if (node.getId() == null) {
             nodes.put(tempId++, node);
         } else {
             nodes.put(node.getId(), node);
@@ -46,13 +55,13 @@ public class NodeRegister implements Serializable {
 
     public synchronized void deregisterNode(Long id) {
         Node node = nodes.get(id);
-        if(node != null) {
+        if (node != null) {
             node.setAlive(false);
         }
     }
 
     public void registerNode(Node node) {
-        if(nodes.containsKey(node.getId())) {
+        if (nodes.containsKey(node.getId())) {
             nodes.get(node.getId()).setAlive(true);
         } else {
             nodes.put(node.getId(), node);
@@ -69,12 +78,11 @@ public class NodeRegister implements Serializable {
     }
 
 
-
     public void update(NodeRegister other) {
-        for(Long k: other.nodes.keySet()) {
+        for (Long k : other.nodes.keySet()) {
             if (!nodes.containsKey(k)) {
                 nodes.put(k, other.nodes.get(k));
-            } else if(!nodes.get(k).isAlive()) {
+            } else if (!nodes.get(k).isAlive()) {
                 nodes.get(k).setAlive(other.nodes.get(k).isAlive());
             }
         }
@@ -82,7 +90,7 @@ public class NodeRegister implements Serializable {
 
 
     public void initFromConf(Collection<DirectoryServerConf> directoryServerList) {
-        for(DirectoryServerConf directoryServerConf: directoryServerList) {
+        for (DirectoryServerConf directoryServerConf : directoryServerList) {
             Node node = new Node();
             node.setId(directoryServerConf.id);
             node.setAlive(true);

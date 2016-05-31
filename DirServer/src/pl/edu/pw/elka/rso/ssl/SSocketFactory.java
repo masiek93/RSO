@@ -26,6 +26,7 @@ public class SSocketFactory {
     }
 
     public static synchronized Socket createSocket(String host, int port) throws IOException {
+        // TODO: stub it temporarily
 //        if (!configRead) {
 //            readConfig();
 //            configRead = true;

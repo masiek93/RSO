@@ -12,7 +12,7 @@ import java.io.IOException;
 public class DirNodeListener extends ClientListener {
 
     public static final int MAX_NRET = 2; // number of retries
-    public static final long WAIT_PERIOD = 1000; // period between retries
+    public static final long WAITING_PERIOD_MS = 1000; // period between retries
 
 
     public DirNodeListener(String idFilePath, int port) {
@@ -25,7 +25,7 @@ public class DirNodeListener extends ClientListener {
 
 
         setTrying(true);
-        // if the main directory server fails, we should check if there are servers with id < ours id
+
 
         int nret = 0;
 
@@ -33,8 +33,10 @@ public class DirNodeListener extends ClientListener {
             try {
                 pickServer();
                 runner();
-                Thread.sleep(WAIT_PERIOD);
+                Thread.sleep(WAITING_PERIOD_MS);
+
                 nret = 0;
+
             } catch (InterruptedException | IOException e) {
                 nret++;
             } finally {
@@ -56,7 +58,8 @@ public class DirNodeListener extends ClientListener {
         handlers.put(EventType.DIR_NODE_SYNCHRO, new Handler() {
             @Override
             public void handleEvent(Event event) {
-                System.out.println("syncing with master dir node");
+                // dummy handler for synchronization
+                System.out.println("syncing with the master dir node");
                 System.out.println("got " + event.getData() + " " + " from server");
             }
         });
@@ -67,6 +70,7 @@ public class DirNodeListener extends ClientListener {
     protected void pickServer() throws InterruptedException, IOException {
         for(Node node: nodeRegister.getDirectoryNodes()) {
             try {
+                // dont connect to its own server
                 if(thisNode.equals(node))
                     continue;
                 socket = SSocketFactory.createSocket(node.getAddress(), node.getPort());

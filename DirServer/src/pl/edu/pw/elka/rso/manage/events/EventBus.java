@@ -6,8 +6,25 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.LinkedBlockingDeque;
 
 /**
- * Broadcast event to all intereseted parties. It works in a publish-subscribeToAllEvents fashion.
- * Run on a separate thread. The listener subscribes to all events, from all senders.
+ * Event bus allows for communication between listeners and event sources. It runs on a separate thread
+ * and notifies the listeners whenever it receives a new event.
+ *
+ * To listen for a particular event:
+ * 1. Implement EventListener
+ *      * getId() has to return a unique id within the application
+ *      * notify(Event ev) - will be called whenever a new event is generated and the listener is
+ *                          the recipient of this event. If it is a time-consuming method, then it
+ *                          should run on a separate thread.
+ *
+ * 2. Register the listener with:
+ *      subscribeToEvent or subscribeToAllEvents
+ *
+ *
+ *
+ * To generate an event:
+ *
+ * EventBus evBus = EventBus.getInstance()
+ * evBus.publish(new Event(...))
  *
  */
 public class EventBus implements Runnable {
@@ -19,7 +36,6 @@ public class EventBus implements Runnable {
     private BlockingQueue<Event> eventsQueue = new LinkedBlockingDeque<>();
     private Map<EventType, Set<EventListener>> listenersMap = new ConcurrentHashMap<>();
 
-    //private List<EventListener> eventListeners = new LinkedList<>();
 
 
     public static EventBus getInstance() {
@@ -65,7 +81,7 @@ public class EventBus implements Runnable {
                     // check if the event source is the same as event listener
                     if(!event.getSourceId().equals(eventListener.getId())) { // dont send to its source
 
-                        if(event.getDstId() == null) {
+                        if(event.isBroadCastEvent()) {
                             eventListener.notify(event);
                         } else if (event.getDstId().equals(eventListener.getId())){
                             eventListener.notify(event);

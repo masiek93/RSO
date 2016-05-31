@@ -17,20 +17,36 @@ import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.concurrent.TimeUnit;
 
 
+/**
+ * Maintain a connection between a manager and other node for the purpose of:
+ * * nodes discovery
+ * * nodes identification
+ * * informing nodes of particular event:
+ *  Common Events to all nodes: nodeConnectedEvent, nodeDisconnectedEvent
+ *      Events particular to dir node: synchroEvent,
+ *      Events particular to file node: // for no there is nothing
+ */
 public class ConnectionHandler implements Runnable, EventListener {
 
     public static long SLEEP_PERIOD_MS = 1000;
 
+    // for comunication
     Socket socket;
     ObjectInputStream iStr;
     ObjectOutputStream oStr;
 
-    boolean running;
+    // is connected
+    boolean connected;
 
+    // store event to be sent to the client
     Queue<Event> eventQueue = new ConcurrentLinkedDeque<>();
+    // subscribe to events
     EventBus eventBus;
+
+
     NodeRegister nodeRegister = NodeRegister.getInstance();
 
+    // the client node. contains information about the client.
     Node clientNode;
 
 
@@ -46,112 +62,97 @@ public class ConnectionHandler implements Runnable, EventListener {
     }
 
     public void start() {
-        setRunning(true);
         new Thread(this).start();
     }
 
-    public synchronized boolean isRunning() {
-        return running;
+    public synchronized boolean isConnected() {
+        return connected;
     }
 
-    public synchronized void setRunning(boolean running) {
-        this.running = running;
+    public synchronized void setConnected(boolean connected) {
+        this.connected = connected;
+    }
+
+
+    public void subscribeToSpecificEvents() {
+        if (clientNode.getNodeType() == NodeType.DIRECTORY_NODE) {
+            eventBus.subscribeToEvent(this, EventType.DIR_NODE_SYNCHRO);
+        } else if(clientNode.getNodeType() == NodeType.FILE_NODE) {
+
+        }
     }
 
     @Override
     public void run() {
         // client sends its stuff at the begining
-       try {
+        try {
 
-           oStr = new ObjectOutputStream(socket.getOutputStream());
-           iStr = new ObjectInputStream(socket.getInputStream());
+            oStr = new ObjectOutputStream(socket.getOutputStream());
+            iStr = new ObjectInputStream(socket.getInputStream());
 
+            setConnected(true);
 
-           initialPhase();
-
-           if(clientNode.getNodeType() == NodeType.DIRECTORY_NODE) {
-               eventBus.subscribeToEvent(this, EventType.DIR_NODE_SYNCHRO);
-           }
-
-           while(isRunning()) {
-               try {
-
-                   if(eventQueue.isEmpty()) {
-
-                        oStr.writeObject(Messages.pingMsg());
-                        Message msg = (Message) iStr.readObject();
-//                        if(msg.getType() == Type.PONG) {
-//                            // ok
-//                        } else {
-//                            tryToSolveError(msg);
-//                        }
-
-                   } else {
-                       Event ev = eventQueue.poll();
-                       if(ev != null) {
-                           System.out.println("new event " + ev + " is sent to id = " + clientNode.getId());
-                           // process events
-                           sendEvent(ev);
-                       }
-                   }
-
-                   TimeUnit.MILLISECONDS.sleep(SLEEP_PERIOD_MS);
-
-               } catch (InterruptedException e) {
-                   e.printStackTrace();
-               }
-
-           }
+            initialPhase();
 
 
 
+            while (isConnected()) {
+                try {
 
-       } catch (IOException e) {
-           e.printStackTrace();
+                    if (eventQueue.isEmpty()) {
 
-       } catch (ClassNotFoundException e) {
-           e.printStackTrace();
+                        oStr.writeObject(Messages.pingMsg());   // ping
+                        Message msg = (Message) iStr.readObject(); // pong
 
-       } finally {
-           setRunning(false);
-           eventBus.publish(new NodeDisconnectedEvent(clientNode, clientNode.getId()));
+                    } else {
+                        Event ev = eventQueue.poll();
+                        if (ev != null) {
+                            System.out.println("new event " + ev + " is sent to id = " + clientNode.getId());
+                            sendEvent(ev);
+                        }
+                    }
 
-           if(clientNode.getId() !=null)
+                    TimeUnit.MILLISECONDS.sleep(SLEEP_PERIOD_MS);
+
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+
+            }
+
+
+        } catch (IOException | ClassNotFoundException e) {
+            e.printStackTrace();
+        } finally {
+            setConnected(false);
+            eventBus.publish(new NodeDisconnectedEvent(clientNode, clientNode.getId()));
+
+            if (clientNode.getId() != null)
                 nodeRegister.deregisterNode(clientNode.getId());
 
 
-           if(!socket.isClosed()) {
-               try {
-                   socket.close();
-               } catch (IOException e) {
-                   e.printStackTrace();
-               }
-           }
-       }
-
-
+            if (!socket.isClosed()) {
+                try {
+                    socket.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
 
 
     }
 
     private void initialPhase() throws IOException, ClassNotFoundException {
-        System.out.println("client has connected!!");
 
-        // first the client
-        clientInitMsg();
-
-
-        System.out.println("client info recved");
-        // notify other nodes that there is a new connected thisNode
-
+        System.out.println("A new client has just connected!");
+        clientInit();
+        // publish this event to the event bus
         eventBus.publish(new NodeConnectedEvent(clientNode, clientNode.getId()));
-        System.out.println("thisNode = " + clientNode);
         nodeRegister.registerNode(clientNode);
 
-
-        // send the clients the initial list of servers
-        serverInitMsg();
-        System.out.println("server info sent");
+        serverInit();
+        System.out.println("initial phase completed." + clientNode);
     }
 
     private void sendEvent(Event event) throws IOException {
@@ -159,33 +160,26 @@ public class ConnectionHandler implements Runnable, EventListener {
         oStr.writeObject(Messages.eventMessage(event));
     }
 
-    private void tryToSolveError(Message msg) throws IOException{
-        // TODO: throws exeption when it can't solve the error. Change the exception signature to something else.
-        System.out.println("client sent weired message " + msg);
 
-    }
-
-
-
-    private void serverInitMsg() throws IOException {
+    private void serverInit() throws IOException {
         oStr.writeObject(Messages.nodeRegisterMsg(nodeRegister));
     }
 
 
     /**
-     *
-     * Send the server basic information such as: type of server, id of the server, and so on..
-     *
-     * **/
+     * Looks ugly, but works...
+     * <p>
+     * *
+     */
 
-     private void clientInitMsg() throws IOException, ClassNotFoundException {
+    private void clientInit() throws IOException, ClassNotFoundException {
         Message msg = null;
         do {
 
             msg = (Message) iStr.readObject();
-            if(!msg.getType().equals(Type.READY))
-                 handleMsg(msg);
-        } while(!msg.getType().equals(Type.READY));
+            if (!msg.getType().equals(Type.READY))
+                handleMsg(msg);
+        } while (!msg.getType().equals(Type.READY));
     }
 
     private void handleMsg(Message msg) throws IOException {
@@ -222,7 +216,6 @@ public class ConnectionHandler implements Runnable, EventListener {
     }
 
 
-
     @Override
     public Long getId() {
         return clientNode.getId();
@@ -238,7 +231,7 @@ public class ConnectionHandler implements Runnable, EventListener {
 
         ConnectionHandler that = (ConnectionHandler) o;
 
-        if (running != that.running) return false;
+        if (connected != that.connected) return false;
         if (eventBus != null ? !eventBus.equals(that.eventBus) : that.eventBus != null) return false;
         if (eventQueue != null ? !eventQueue.equals(that.eventQueue) : that.eventQueue != null) return false;
         if (iStr != null ? !iStr.equals(that.iStr) : that.iStr != null) return false;
@@ -255,7 +248,7 @@ public class ConnectionHandler implements Runnable, EventListener {
         int result = socket != null ? socket.hashCode() : 0;
         result = 31 * result + (iStr != null ? iStr.hashCode() : 0);
         result = 31 * result + (oStr != null ? oStr.hashCode() : 0);
-        result = 31 * result + (running ? 1 : 0);
+        result = 31 * result + (connected ? 1 : 0);
         result = 31 * result + (eventQueue != null ? eventQueue.hashCode() : 0);
         result = 31 * result + (eventBus != null ? eventBus.hashCode() : 0);
         result = 31 * result + (nodeRegister != null ? nodeRegister.hashCode() : 0);

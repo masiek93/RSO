@@ -28,6 +28,8 @@ public class SServerSocketFactory {
     }
 
     public static synchronized ServerSocket createServerSocket(int port) throws IOException {
+        // TODO: stub it temporarily
+
         return new ServerSocket(port);
 //
 //        if (!configRead) {

@@ -73,7 +73,7 @@ public class EchoServer {
 
             s = SServerSocketFactory.createServerSocket(Config.PORT);
 
-            System.out.println("system started running and is waiting for new connections");
+            System.out.println("system started connected and is waiting for new connections");
 
             while (true) {
                 SSLSocket client = (SSLSocket) s.accept();

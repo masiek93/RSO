@@ -5,7 +5,7 @@ import java.io.Serializable;
 public class Message implements Serializable {
 
     private Type type;
-    private Object data;
+    private Object data; // must be serializable
     private Code code;
 
     public Message( Type type, Object data, Code code) {

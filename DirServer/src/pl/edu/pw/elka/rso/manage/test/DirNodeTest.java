@@ -20,12 +20,8 @@ public class DirNodeTest {
         // run dir node client. If it wont connect then run server.
 
         tryRunClient(args);
-
         System.out.println("dir node  didnt find any dir servers");
-
         runServer(args);
-
-
     }
 
     private static void runServer(String[] args) throws IOException, InterruptedException {
@@ -51,12 +47,10 @@ public class DirNodeTest {
         c.start();
 
         while (c.isTrying()) {
-            System.out.println("dir node is looking for a dir node server");
-            while (c.isRunning()) {
+            while (c.isConnected()) {
          //       printAliveNodes();
                 Thread.sleep(1000*5);
             }
-            Thread.sleep(2000);
         }
     }
 

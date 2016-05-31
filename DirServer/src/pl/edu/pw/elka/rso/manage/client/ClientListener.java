@@ -23,52 +23,66 @@ import java.net.Socket;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * A client listener is an object reponsible for maintaining the communication
+ * with a node server (node directory server).
+ *
+ * The client listener can be in several states: trying to connect (trying = true, connected = false),
+ *  connected (trying = true, connected = true), not trying (trying = false, connected = false).
+ */
 public abstract class ClientListener implements Runnable {
 
     public static final String DEFAULT_ID_FILE_PATH = "resources/gen/id.txt";
 
+    // where is the id file stored?
+    protected String idFilePath;
+
+    // for sending information
     protected Socket socket;
     protected ObjectOutputStream oStr;
     protected ObjectInputStream iStr;
 
-    protected boolean running;
+    // information about connected parties
     protected Node thisNode = new Node(); // data describing this thisNode
     protected Node otherNode; // data describing the other thisNode (manager)
 
-    protected boolean idChanged = false;  // if id changes then the client should persist this information
+    // whether id has changed after connecting to the server.
+    private boolean idChanged = false;
+
+    // the node register
     protected NodeRegister nodeRegister = NodeRegister.getInstance();
-    protected String idFilePath; // where we are gonna store id
 
-    boolean trying = true; // is it trying to connect
+    // is it trying to connect.
+    boolean trying = true;
 
+    boolean connected = false;
 
-    protected Map<EventType, Handler> handlers = new HashMap<>(); // for event handling
+    // for event handling
+    // bind event with handler and it should work out of the box
+    protected Map<EventType, Handler> handlers = new HashMap<>();
 
 
     public ClientListener(String idFilePath, NodeType nodeType) {
+        this.idFilePath = idFilePath == null ? DEFAULT_ID_FILE_PATH : idFilePath;
+        configureThisNode(nodeType);
+        setUpHandlers();
+    }
 
-        if(idFilePath != null) {
-            this.idFilePath = idFilePath;
-        } else {
-            this.idFilePath = DEFAULT_ID_FILE_PATH;
-        }
-
+    private void configureThisNode(NodeType nodeType) {
         try {
             thisNode.setId(LongIO.readLong(idFilePath));
         } catch (LongIOException e) {
-            // ignore it. Id will be null and it will be requested from the server.
+            // ignore it. It will send a request for a new id.
         }
         thisNode.setNodeType(nodeType);
         thisNode.setAlive(true);
+
         try {
             // register the nodes from configuration
             nodeRegister.initFromConf(Config.getInstance().directoryServerList);
-
         } catch (IOException | JAXBException e) {
             e.printStackTrace();
         }
-
-        setUpHandlers();
     }
 
 
@@ -78,7 +92,8 @@ public abstract class ClientListener implements Runnable {
     }
 
     /**
-     * Set up basic handlers.
+     * Global handlers that are common to dir node client and file node client.
+     * Handles: node connected event, node disconnected event
      */
     protected void setUpBasicHandlers() {
         handlers.put(EventType.NODE_CONNECTED_EVENT, new Handler() {
@@ -101,13 +116,12 @@ public abstract class ClientListener implements Runnable {
 
 
     /**
-     * Set up specific handlers
+     * Abstract method for setting up specific handlers for subclasses.
      */
     protected abstract void setUpSpecificHandlers();
 
 
-    public synchronized void setTrying(boolean trying)
-    {
+    public synchronized void setTrying(boolean trying) {
         this.trying = trying;
     }
 
@@ -122,12 +136,12 @@ public abstract class ClientListener implements Runnable {
         t.start();
     }
 
-    public synchronized boolean isRunning() {
-        return running;
+    public synchronized boolean isConnected() {
+        return connected;
     }
 
-    public synchronized void setRunning(boolean running) {
-        this.running = running;
+    public synchronized void setConnected(boolean connected) {
+        this.connected = connected;
     }
 
     public synchronized Long getId() {
@@ -139,17 +153,71 @@ public abstract class ClientListener implements Runnable {
     }
 
 
+    /**
+     * initial step of the protocol - exchange informations between node manager and this node.
+     * @throws IOException
+     * @throws ClassNotFoundException
+     */
     public void initialPhase() throws IOException, ClassNotFoundException {
 
-
-        // first the client its information (parameters, id requests, etc.)
-        clientInitMsg();
+        // first the client sends its information (parameters, id requests, etc.)
+        clientInit();
         // server sends its information (nodes that it sees, etc)
-        serverInitMsg();
+        serverInit();
 
         System.out.println("initial phase completed with " + otherNode);
     }
 
+    /**
+     * request id, send information such as type of server etc.
+     * @throws IOException
+     * @throws ClassNotFoundException
+     */
+    private void clientInit() throws IOException, ClassNotFoundException {
+
+        // send id
+
+        if(getId() == null) {
+            oStr.writeObject(Messages.requestIdMsg());
+            Message msg = (Message) iStr.readObject();
+            setId((Long) msg.getData());
+            idChanged = true;
+
+        } else {
+            // show id to the server for confirmation.
+            oStr.writeObject(Messages.showIdMsg(getId()));
+            Message msg = (Message) iStr.readObject();
+            if(msg.getCode() == Code.YES) {
+                idChanged = false;
+            } else {
+                // server didnt accept the message. retry.
+                thisNode.setId(null);
+                clientInit();
+            }
+        }
+
+        // send information about this node
+        oStr.writeObject(Messages.nodeInfo(thisNode));
+
+        // signal to the server that this thisNode is ready
+        oStr.writeObject(Messages.readyMsg());
+
+        // write id to file if it has changed
+        if(idChanged) {
+            try {
+                LongIO.writeLong(idFilePath, getId());
+            } catch (LongIOException e) {
+                e.printStackTrace();
+            }
+        }
+
+        System.out.println("client has sent its parameters: " + thisNode);
+    }
+
+    private void serverInit() throws IOException, ClassNotFoundException {
+        Message msg = (Message) iStr.readObject();
+        nodeRegister.update((NodeRegister) msg.getData());
+    }
 
 
 
@@ -162,16 +230,13 @@ public abstract class ClientListener implements Runnable {
             oStr = new ObjectOutputStream(socket.getOutputStream());
 
 
-            setRunning(true);
+            setConnected(true);
 
-            // pick one of the servers from node register
-
-            // initialize
             initialPhase();
 
             // from now on, the server is responsible for different stuff
 
-            while(isRunning()) {
+            while(isConnected()) {
                 Message msg = (Message) iStr.readObject();
                 switch (msg.getType()) {
                     case PING:
@@ -186,7 +251,7 @@ public abstract class ClientListener implements Runnable {
         } catch (IOException | ClassNotFoundException e) {
             e.printStackTrace();
         } finally {
-            setRunning(false);
+            setConnected(false);
 
             // unregister the other node
             if(otherNode != null && otherNode.getId() != null) {
@@ -232,57 +297,9 @@ public abstract class ClientListener implements Runnable {
         }
     }
 
-    private void serverInitMsg() throws IOException, ClassNotFoundException {
 
-        Message msg = (Message) iStr.readObject();
-        nodeRegister.update((NodeRegister) msg.getData());
-    }
 
-    /**
-     * request id, send information such as type of server etc.
-     * @throws IOException
-     * @throws ClassNotFoundException
-     */
-    private void clientInitMsg() throws IOException, ClassNotFoundException {
 
-        // send id
-
-        if(getId() == null) {
-            oStr.writeObject(Messages.requestIdMsg());
-            Message msg = (Message) iStr.readObject();
-            setId((Long) msg.getData());
-            idChanged = true;
-
-        } else {
-            oStr.writeObject(Messages.showIdMsg(getId()));
-            Message msg = (Message) iStr.readObject();
-            if(msg.getCode() == Code.YES) {
-                // ok
-                idChanged = false;
-            } else {
-                // server didnt accept the message
-                thisNode.setId(null);
-                clientInitMsg();
-            }
-        }
-
-        // send type of thisNode
-
-        oStr.writeObject(Messages.nodeInfo(thisNode));
-        // signal to the server that this thisNode is ready
-        oStr.writeObject(Messages.readyMsg());
-
-        // write it to file if it has changed
-        if(idChanged) {
-            try {
-                LongIO.writeLong(idFilePath, getId());
-            } catch (LongIOException e) {
-                e.printStackTrace();
-            }
-        }
-
-        System.out.println("client has sent its parameters: " + thisNode);
-    }
 
 
 

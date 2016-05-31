@@ -13,7 +13,8 @@ public class DirNodeSynchronizer extends AbstractEventListener {
 
     @Override
     protected void subscribeToEvents() {
-        eventBus.subscribeToAllEvents(this);
+        eventBus.subscribeToEvent(this, EventType.NODE_CONNECTED_EVENT);
+
     }
 
     @Override
@@ -22,6 +23,7 @@ public class DirNodeSynchronizer extends AbstractEventListener {
         handlers.put(EventType.NODE_CONNECTED_EVENT, new Handler() {
             @Override
             public void handleEvent(Event event) {
+                // first time the node connects
                 Long senderId = event.getSourceId();
                 Node node = (Node) event.getData();
                 if(node.getNodeType() == NodeType.DIRECTORY_NODE) {
@@ -36,6 +38,8 @@ public class DirNodeSynchronizer extends AbstractEventListener {
 
 
     public void replicateData(Object data) {
+
+        // replication == sending DirNodeSynchro event to all replicas
         NodeRegister nodeRegister = NodeRegister.getInstance();
         for(Node replicas: nodeRegister.getDirectoryNodes()) {
             eventBus.publish(new DirNodeSynchroEvent(data, getId(),
