@@ -1,30 +1,23 @@
-package clientConnection;
+package DirectoryServerActions;
 
-import java.io.Serializable;
 import java.util.List;
 
 import clientConnection.db_operations.db_operations;
 
 /**
- * 
+ * Obs³uga listy plików dostêpnych dla serwera katalogowego w lokalnej DB
  * @author Mateusz
- * Send list of files saved at server's database
+ *
  */
-
-public class SendFileList implements Serializable 
-{
-
-	/**
-	 * Compiler generated UID
-	 */
-	private static final long serialVersionUID = 6791632052881941490L;
+public class SendFileList {
+	
 	private db_operations db;
 	private List<String> path_list;
-	
+
 	/**
 	 *  TODO Docelowo serwer katalogowy ma uzyskaæ listê plików z bazy danych serwera katalogowego
 	 */
-	SendFileList()
+	public SendFileList()
 	{
 		db = new db_operations();
 		generateFileList();
@@ -48,4 +41,5 @@ public class SendFileList implements Serializable
 		
 		return ret;
 	}
+
 }
