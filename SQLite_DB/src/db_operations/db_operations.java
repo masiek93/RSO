@@ -17,13 +17,13 @@ import java.util.LinkedList;
 import java.util.List;
  
 import file_info.file_info_storager;
-import file_info.file_on_server;
-
+import file_info.file_on_serverfile;
+import file_info.file_server;
 
 public class db_operations {
 	 
     public static final String DRIVER = "org.sqlite.JDBC";
-    public static final String DB_URL = "jdbc:sqlite:database.db";
+    public static final String DB_URL = "jdbc:sqlite:test2.db";
  
     private Connection conn;
     private Statement stat;
@@ -48,11 +48,13 @@ public class db_operations {
     }
  
     public boolean createTable()  {
-        String createFile_info_storager = "CREATE TABLE IF NOT EXISTS file_info_storager (id INTEGER PRIMARY KEY AUTOINCREMENT, size DOUBLE, owner varchar(255), creation_time DATETIME, modify_time DATETIME)";
-        String createFile_on_server = "CREATE TABLE IF NOT EXISTS file_on_server (id INTEGER, server_id INTEGER, path varchar(255))";
+        String createFile_info_storager = "CREATE TABLE IF NOT EXISTS file_info_storager (file_id INTEGER PRIMARY KEY AUTOINCREMENT, name varchar(255),size DOUBLE, creation_time DATETIME)";
+        String createFile_on_serverfile = "CREATE TABLE IF NOT EXISTS file_on_serverfile (id INTEGER PRIMARY KEY AUTOINCREMENT, file_id INTEGER, server_id INTEGER, save_time DATETIME, lock_timestamp DATETIME)";
+        String createFile_server = "CREATE TABLE IF NOT EXISTS file_server (server_id INTEGER PRIMARY KEY AUTOINCREMENT, ip_address varchar(255), server_size DOUBLE)";
         try {
             stat.execute(createFile_info_storager);
-            stat.execute(createFile_on_server);
+            stat.execute(createFile_on_serverfile);
+            stat.execute(createFile_server);
         } catch (SQLException e) {
             System.err.println("Error on creating table");
             e.printStackTrace();
@@ -61,14 +63,13 @@ public class db_operations {
         return true;
     }
  
-    public boolean insertFile_info_storager(double size, String owner, String creation_time, String modify_time) {
+    public boolean insertintoFile_info_storager(String name, double size, String creation_time) {
         try {
             PreparedStatement prepStmt = conn.prepareStatement(
-                    "insert into file_info_storager values (NULL, ?, ?, ?, ?);");
-            prepStmt.setDouble(1, size);
-            prepStmt.setString(2, owner);
+                    "insert into file_info_storager values (NULL, ?, ?, ?);"); 
+            prepStmt.setString(1, name);
+            prepStmt.setDouble(2, size);
             prepStmt.setString(3, creation_time);
-            prepStmt.setString(4, modify_time);
             prepStmt.execute();
         } catch (SQLException e) {
             System.err.println("Error on insert into table file_info_storager");
@@ -78,29 +79,30 @@ public class db_operations {
         return true;
     }
  
-    public boolean insertFile_on_server(int id, int server_id, String path) {
+    public boolean insertintoFile_on_serverfile(int file_id, int server_id, String save_time, String lock_timestamp) {
         try {
             PreparedStatement prepStmt = conn.prepareStatement(
-                    "insert into file_on_server values (?, ?, ?);");
-            prepStmt.setInt(1, id);
+                    "insert into file_on_serverfile values (NULL,?, ?, ?, ?);");
+            prepStmt.setInt(1, file_id);
             prepStmt.setInt(2, server_id);
-            prepStmt.setString(3, path);
+            prepStmt.setString(3, save_time);
+            prepStmt.setString(4, lock_timestamp);
             prepStmt.execute();
         } catch (SQLException e) {
-            System.err.println("Error on insert into table file_on_server");
+            System.err.println("Error on insert into table file_on_serverfile");
             return false;
         }
         return true;
     }
     
-    public boolean insertFile_to_db(double size, String owner, String creation_time, String modify_time, int server_id, String path) {
-        	if(insertFile_info_storager(size, owner, creation_time, modify_time)){
+    public boolean insertFile_to_db(String name, double size, String creation_time, String save_time, int server_id, String lock_timestamp) {
+        	if(insertintoFile_info_storager(name, size, creation_time)){
         		try {
         			ResultSet result = stat.executeQuery("SELECT last_insert_rowid() FROM file_info_storager");
-        			int id;
+        			int file_id;
         			result.next();
-        			id = result.getInt("last_insert_rowid()");
-        			insertFile_on_server(id, server_id, path);
+        			file_id = result.getInt("last_insert_rowid()");
+        			insertintoFile_on_serverfile(file_id, server_id, save_time, lock_timestamp);
         			
         		} catch (SQLException e) {
                     e.printStackTrace();
@@ -139,16 +141,15 @@ public class db_operations {
     return true;
 }
     
-    public List<String> generate_path_list(int server_id) {
+    public List<String> generate_path_list() {
         List<String> path_list = new LinkedList<String>();
         try {
         	PreparedStatement prepStmt = conn.prepareStatement(
-        			"SELECT path FROM file_on_server WHERE server_id=?");
-        	prepStmt.setInt(1, server_id);
+        			"SELECT name FROM file_info_storager");
 			ResultSet result = prepStmt.executeQuery();
             String path;
             while(result.next()) {
-                path = result.getString("path");
+                path = result.getString("name");
                 path_list.add(new String(path));
             }
         } catch (SQLException e) {
@@ -163,16 +164,15 @@ public class db_operations {
         List<file_info_storager> Result_list = new LinkedList<file_info_storager>();
         try {
             ResultSet result = stat.executeQuery("SELECT * FROM file_info_storager");
-            int id;
+            int file_id;
             double size;
-            String owner, creation_time, modify_time;
+            String name,creation_time;
             while(result.next()) {
-                id = result.getInt("id");
-                size = result.getDouble("size");
-                owner = result.getString("owner");
+                file_id = result.getInt("file_id");
+                name = result.getString("name");
+                size = result.getDouble("size");                
                 creation_time = result.getString("creation_time");
-                modify_time = result.getString("modify_time");
-                Result_list.add(new file_info_storager(id, size, owner, creation_time, modify_time));
+                Result_list.add(new file_info_storager(file_id, name, size, creation_time));
             }
         } catch (SQLException e) {
             e.printStackTrace();
@@ -181,17 +181,39 @@ public class db_operations {
         return Result_list;
     }
  
-    public List<file_on_server> selectFile_on_server() {
-        List<file_on_server> Result_list = new LinkedList<file_on_server>();
+    public List<file_on_serverfile> selectFile_on_serverfile() {
+        List<file_on_serverfile> Result_list = new LinkedList<file_on_serverfile>();
         try {
-            ResultSet result = stat.executeQuery("SELECT * FROM file_on_server");
-            int id, server_id;
-            String path;
+            ResultSet result = stat.executeQuery("SELECT * FROM file_on_serverfile");
+            int id, file_id, server_id;
+            String save_time, lock_timestamp;
             while(result.next()) {
                 id = result.getInt("id");
+                file_id = result.getInt("file_id");
                 server_id = result.getInt("server_id");
-                path = result.getString("path");
-                Result_list.add(new file_on_server(id, server_id, path));
+                save_time = result.getString("save_time");
+                lock_timestamp = result.getString("lock_timestamp");
+                Result_list.add(new file_on_serverfile(id, file_id, server_id, save_time, lock_timestamp));
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return null;
+        }
+        return Result_list;
+    }
+    
+    public List<file_server> selectFile_server() {
+        List<file_server> Result_list = new LinkedList<file_server>();
+        try {
+            ResultSet result = stat.executeQuery("SELECT * FROM file_server");
+            int server_id;
+            String ip_address;
+            double server_size;
+            while(result.next()) {
+                server_id = result.getInt("server_id");
+                ip_address = result.getString("ip_address");
+                server_size = result.getDouble("server_size");
+                Result_list.add(new file_server(server_id, ip_address, server_size));
             }
         } catch (SQLException e) {
             e.printStackTrace();
