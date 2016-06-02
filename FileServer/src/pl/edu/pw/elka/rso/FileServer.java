@@ -1,5 +1,8 @@
 package pl.edu.pw.elka.rso;
 
+import pl.edu.pw.elka.rso.config.Config;
+import pl.edu.pw.elka.rso.heartBeat.ServerDetails;
+
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -115,12 +118,8 @@ public class FileServer {
 				if (oos_dirServer!=null) oos_dirServer.close();
 			}
 	   	} catch (IOException e) {
-	   		// TODO Auto-generated catch block
-//	   		System.out.println("confirmationMessageToDirectoryServer: "+e.toString());
 	   		e.printStackTrace();
 	   	}catch (NullPointerException e) {
-	   		// TODO Auto-generated catch block
-//	   		System.out.println("confirmationMessageToDirectoryServer: "+e.toString());
 	   		e.printStackTrace();
 	   	}
 	}
@@ -163,7 +162,29 @@ public class FileServer {
 		return socket;
 		
 	}
-	void startServer(String fileStoragePath){
+	void startServer(String fileStoragePath,String[] args){
+		try {
+			Config.init(args);
+		} catch (IOException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}
+		ServerDetails sd1=Config.INSTANCE.getDirectoryServers().get(0);
+		ServerDetails sd2=Config.INSTANCE.getDirectoryServers().get(1);
+		
+		if ( sd1.isRedundant() && !sd2.isRedundant()){
+			RedundantDirectoryServerAddress=sd1.getServerAddress().toString();
+			RedundantDirectoryServerPort=sd1.getPort();
+			
+			directoryServerAddress = sd2.getServerAddress().toString();
+			directoryServerPort = sd2.getPort();
+		}else{
+			RedundantDirectoryServerAddress=sd2.getServerAddress().toString();
+			RedundantDirectoryServerPort=sd2.getPort();
+			
+			directoryServerAddress = sd1.getServerAddress().toString();
+			directoryServerPort = sd1.getPort();
+		}
 		//TODO Czytam konfiguracje i zapisuje adres i port  SK i  SKR
 		Socket socketToDirectoryServer = getDirectoryServerSocket();
 		ObjectInputStream ois=null;
@@ -194,7 +215,7 @@ public class FileServer {
 	public static void main(String[] args) {
 		String fileStoragePath="storage";
 		FileServer fs= new FileServer();
-		fs.startServer(fileStoragePath);
+		fs.startServer(fileStoragePath,args);
 		ServerSocket servsock = null;
 		ServerSocket fileServsock = null;
 		Socket socketToDirectoryServer = fs.getDirectoryServerSocket();
