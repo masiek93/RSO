@@ -54,14 +54,9 @@ public class FileServer {
 				   }
 				   if (object instanceof DownloadFileMessage){
 					   DownloadFileMessage dgm= (DownloadFileMessage) object;
-					   if( !fileIsLocked(dgm.getId())){
 						   FileHandler fh = new FileHandler();
 						   fileSocket=fileServsock.accept();
-						   fh.uploadFile(fileStoragePath+"/"+dgm.getId(), fileSocket);
-					   }
-					   // TODO w przeciwnym wypadku co ?
-					   
-
+						   fh.uploadFile(fileStoragePath+"/"+dgm.getId(), fileSocket);					   
 				   }
 				   if (object instanceof DeleteFileMessage){
 					   DeleteFileMessage dflm = (DeleteFileMessage) object;
@@ -83,27 +78,11 @@ public class FileServer {
 					   FileHandler fh = new FileHandler();
 					   fileSocket=fileServsock.accept();
 					   String path=fileStoragePath+"/"+ufm.getId();
-					   if( !fileIsLocked(ufm.getId())){
-						   fh.downloadFile(path, fileSocket, (int)(1.05*ufm.getSizeInBytes()));
-						   // send notification to directory server
-						   // TODO add hash
-						   confirmationMessageToDirectoryServer(socketToDirectoryServer,Type.FILE_RECIVED,Status.SUCCESSFUL,ufm.getId(),null);
-					   }
-					   // TODO w przeciwnym wypadku co ?
-				   }
-				   if (object instanceof FileManagementMessage){
-					   FileManagementMessage fmm=(FileManagementMessage) object;
-					   if (fmm.getFileOperation().equals( FileOperation.LOCK) ){
-						   if ( !fileIsLocked(fmm.getId()))
-							   lockedFiles.add(fmm.getId());
-						   confirmationMessageToDirectoryServer(socketToDirectoryServer,Type.FILE_LOCKED,Status.SUCCESSFUL,fmm.getId(),null);
-					   }
-					   if (fmm.getFileOperation().equals( FileOperation.UNLOCK) ){
-							   lockedFiles.remove(fmm.getId());
-							   confirmationMessageToDirectoryServer(socketToDirectoryServer,Type.FILE_UNLOCKED,Status.SUCCESSFUL,fmm.getId(),null);
-					   }
-//					   TODO Wyslij odpowiedz do serwera  katalogowego
 					   
+					   fh.downloadFile(path, fileSocket, (int)(1.05*ufm.getSizeInBytes()));
+					   // send notification to directory server
+					   // TODO add hash
+					   confirmationMessageToDirectoryServer(socketToDirectoryServer,Type.FILE_RECIVED,Status.SUCCESSFUL,ufm.getId(),null);
 				   }
 			   }finally{
 				   if (ois!=null) ois.close();
@@ -114,12 +93,7 @@ public class FileServer {
 			   e.printStackTrace();
 		   }
 	}
-	private boolean fileIsLocked(String fln_nm){
-		for (int i=0;i<this.lockedFiles.size();i++)
-			if( this.lockedFiles.get(i).equals(fln_nm))
-				return true;
-		return false;
-	}
+
 	void confirmationMessageToDirectoryServer(Socket socketToDirectoryServer, Type type,Status status, String id,byte[] hash){
 		ConfirmationMessage cm = new ConfirmationMessage();
 		cm.setStatus(status);

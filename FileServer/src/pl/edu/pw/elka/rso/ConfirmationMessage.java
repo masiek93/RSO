@@ -1,6 +1,6 @@
 package pl.edu.pw.elka.rso;
 
-enum Type{ FILE_RECIVED,FILE_DELETED,FILE_LOCKED,FILE_UNLOCKED }
+enum Type{ FILE_RECIVED,FILE_DELETED }
 enum Status {SUCCESSFUL, UNSUCCESSFUL }
 
 public class ConfirmationMessage extends FileMessage {
