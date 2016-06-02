@@ -20,16 +20,20 @@ import java.util.Vector;
 //import org.apache.commons.codec.binary.Hex;
 
 public class FileServer {
-	private Vector<String> lockedFiles;
-	Vector<String> getlockedFiles(){return this.lockedFiles;}
-	void setlockedFile(Vector<String> lockedFiles){this.lockedFiles=lockedFiles;}
+	String directoryServerAddress;
+	String RedundantDirectoryServerAddress;
+	int directoryServerPort ;
+	int RedundantDirectoryServerPort;
+	Integer serverID;
+	static int SOCKET_PORT = 13267;
+	static int FILE_SOCKET_PORT = 13999;
+	
 	void communicator(ServerSocket servsock,ServerSocket fileServsock,Socket socketToDirectoryServer, String fileStoragePath){
 		   Object object=null;
 		   ObjectInputStream ois=null;
 		   ObjectOutputStream oos=null;
 		   Socket socket=null; // used to provide messaging 
 		   Socket fileSocket = null; // used to upload/download files 
-		   this.lockedFiles=new Vector<String>(); // Block against edit and download
 		   try{
 			   try{
 				   socket = servsock.accept();
@@ -136,21 +140,71 @@ public class FileServer {
 //		return result;
 //	}
 	
+	Socket getDirectoryServerSocket(){
+		Socket socket=null;
+		do{
+			try{
+				try{
+					socket = new Socket(directoryServerAddress, directoryServerPort);
+				}catch (Exception e){
+					   e.printStackTrace();
+					   socket = new Socket(RedundantDirectoryServerAddress, RedundantDirectoryServerPort);
+				}
+			}catch (Exception e){
+				   e.printStackTrace();
+				   try {
+					Thread.sleep(1000);
+				} catch (InterruptedException e1) {
+					// TODO Auto-generated catch block
+					e1.printStackTrace();
+				}
+			}
+		}while(socket==null);
+		return socket;
+		
+	}
+	void startServer(String fileStoragePath){
+		//TODO Czytam konfiguracje i zapisuje adres i port  SK i  SKR
+		Socket socketToDirectoryServer = getDirectoryServerSocket();
+		ObjectInputStream ois=null;
+		ObjectOutputStream oos=null;
+		System.out.println("Diractory Server has accepted connetion"+socketToDirectoryServer);
+		try{
+			ois = new ObjectInputStream(socketToDirectoryServer.getInputStream());
+			oos = new ObjectOutputStream(socketToDirectoryServer.getOutputStream());
+			//Zarejestrowac się u SK  (pobrać ID,wyslac listę portow na ktorych słucham)
+			RegistrationMessage rm =new RegistrationMessage();
+			rm.setSocket_port(SOCKET_PORT);
+			rm.setFile_socket_port(FILE_SOCKET_PORT);
+			oos.writeObject(rm);
+			serverID = (Integer) ois.readObject();
+			//wysłać ilość wolnego miejsca
+			File file =new File(fileStoragePath);
+	   		Long free_space=file.getUsableSpace();
+	   		oos.writeObject(free_space);
+	   		//wysłać listę plików
+	   		File folder = new File(fileStoragePath);
+	   		String[] listOfFiles=folder.list();
+	   		oos.writeObject(listOfFiles);
+		}catch (Exception e){
+			   e.printStackTrace();
+		}	
+	}
+	
 	public static void main(String[] args) {
-		// TODO Auto-generated method stub
 		String fileStoragePath="storage";
-		int SOCKET_PORT = 13267;
-		int FILE_SOCKET_PORT = 13999;
+		FileServer fs= new FileServer();
+		fs.startServer(fileStoragePath);
 		ServerSocket servsock = null;
 		ServerSocket fileServsock = null;
-		Socket socketToDirectoryServer = null;
+		Socket socketToDirectoryServer = fs.getDirectoryServerSocket();
 		try{
 			servsock = new ServerSocket(SOCKET_PORT);
 			fileServsock = new ServerSocket(FILE_SOCKET_PORT);
 		}catch (Exception e){
 			   e.printStackTrace();
 		}
-		FileServer fs= new FileServer();
+		
 		while(true){
 			fs.communicator(servsock,fileServsock,socketToDirectoryServer,fileStoragePath);
 		}
