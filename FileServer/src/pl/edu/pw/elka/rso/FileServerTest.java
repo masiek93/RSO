@@ -267,7 +267,6 @@ public class FileServerTest {
 		
 		
 		Thread.sleep(5);
-		Object result=null;
 		DownloadFileMessage dfm= new DownloadFileMessage();
 		dfm.setId("test_file.txt");
 //		TODO implement partial download
@@ -325,7 +324,83 @@ public class FileServerTest {
 		assertEquals(bigInt1.toString(16), bigInt2.toString(16));
 	}
 	
-	
+	@Test
+	public void testFileForwarding() throws InterruptedException {
+		deleteFile("storage2/test_file.txt");
+		
+		Thread t1 = new Thread()
+		{
+		    public void run() {
+		    	server();
+		    }
+		};
+		t1.start();
+		Thread.sleep(20);
+		final int socket_port2=50930;
+		final int file_socket_port2=50932;
+		Thread t2 = new Thread()
+		{
+		    public void run() {
+				FileServer fs=new FileServer();
+				try {
+					
+		    		servsock = new ServerSocket(socket_port2);
+		    		fileServsock = new ServerSocket(file_socket_port2);
+		    		Socket socketToDirectoryServer = null;
+		    		while (true){
+		    			System.out.println("Server2: Waiting...");
+				    	fs.communicator(servsock,fileServsock,socketToDirectoryServer,".");	  
+		    		}
+				}catch (Exception e) {
+		    		System.out.println("server socket: "+e.getMessage()+" "+e.toString());// TODO: handle exception
+		    	}finally{
+		    		if (servsock!=null)
+						try {
+							servsock.close();
+						} catch (IOException e) {
+							// TODO Auto-generated catch block
+							e.printStackTrace();
+						}
+		    	}
+		    }
+		};
+		t2.start();
+		Thread.sleep(20);
+		ForwardFileMessage ffm = new ForwardFileMessage();
+		ffm.setId("test_file.txt");
+		ffm.setDestinationAddress("localhost");
+		ffm.setDestinationPort(socket_port2);
+		ffm.setDestinationFilePort(file_socket_port2);
+		ObjectOutputStream oos=null;
+		ObjectInputStream ois=null;
+		Socket socket_client=null;
+		try{
+			try {
+				socket_client = new Socket(SERVER, SOCKET_PORT);
+				System.out.println("Connecting...");
+//					order of oos and ois is important (should be opposite to the communicator)
+				oos = new ObjectOutputStream(socket_client.getOutputStream());
+				ois = new ObjectInputStream(socket_client.getInputStream());
+			    
+				oos.writeObject(ffm);
+				
+			} finally{
+				if (ois!=null)ois.close(); 
+				if (oos!=null)oos.close(); 
+				if (socket_client!=null)socket_client.close();
+			}
+		}catch (UnknownHostException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		Thread.sleep(300);
+		t1.stop();
+		t2.stop();
+	}
 	
 	void server(){
 		FileServer fs=new FileServer();
@@ -340,6 +415,14 @@ public class FileServerTest {
     		}
 		}catch (Exception e) {
     		System.out.println("server socket: "+e.getMessage()+" "+e.toString());// TODO: handle exception
+    	}finally{
+    		if (servsock!=null)
+				try {
+					servsock.close();
+				} catch (IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
     	}
 		
 	}

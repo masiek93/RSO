@@ -37,6 +37,9 @@ public class FileServer {
 		   Object object=null;
 		   ObjectInputStream ois=null;
 		   ObjectOutputStream oos=null;
+		   ObjectInputStream ois2=null;
+		   ObjectOutputStream oos2=null;
+		   Socket comunicationSocket=null;
 		   Socket socket=null; // used to provide messaging 
 		   Socket fileSocket = null; // used to upload/download files 
 		   try{
@@ -47,8 +50,9 @@ public class FileServer {
 				   oos = new ObjectOutputStream(socket.getOutputStream());
 				   
 				   object = (Object) ois.readObject();
-				   SystemMessage systemMessage= new SystemMessage();
+				  
 				   if (object instanceof SystemMessage){
+					   SystemMessage systemMessage= new SystemMessage();
 					   systemMessage = (SystemMessage) object;
 					   if (systemMessage.getOperation().equals( Operation.GET_FREE_SPACE)){
 							   File file =new File(fileStoragePath);
@@ -62,6 +66,7 @@ public class FileServer {
 					   }		   
 				   }
 				   if (object instanceof DownloadFileMessage){
+					   System.out.println("inside DownloadFileMessage");
 					   DownloadFileMessage dgm= (DownloadFileMessage) object;
 						   FileHandler fh = new FileHandler();
 						   fileSocket=fileServsock.accept();
@@ -90,13 +95,35 @@ public class FileServer {
 					   
 					   fh.downloadFile(path, fileSocket, (int)(1.05*ufm.getSizeInBytes()));
 					   // send notification to directory server
-					   // TODO add hash
 					   confirmationMessageToDirectoryServer(socketToDirectoryServer,Type.FILE_RECIVED,Status.SUCCESSFUL,ufm.getId(), getDigest(path));
+				   }
+				   if (object instanceof ForwardFileMessage){
+					   ForwardFileMessage ffm= (ForwardFileMessage) object;
+					   UploadFileMessage ufm = new UploadFileMessage();
+					   ufm.setId(ffm.getId());
+					   String path=fileStoragePath+"/"+ffm.getId();
+					   File file = new File (path);
+					   ufm.setSizeInBytes(file.length());
+					   comunicationSocket= new Socket(ffm.getDestinationAddress(),ffm.getDestinationPort());
+					   
+					   oos2 = new ObjectOutputStream(comunicationSocket.getOutputStream());
+					   ois2 = new ObjectInputStream(comunicationSocket.getInputStream());
+					   
+					   oos2.writeObject(ufm);
+					  
+					   Socket fileSocketToAnotherFS= new Socket(ffm.getDestinationAddress(),ffm.getDestinationFilePort());
+					   FileHandler fh =new FileHandler();
+					   fh.uploadFile(path, fileSocketToAnotherFS,0);	
+					   
 				   }
 			   }finally{
 				   if (ois!=null) ois.close();
 				   if (oos!=null)oos.close();
 				   if (socket!=null) socket.close();
+				   
+				   if (ois2!=null) ois2.close();
+				   if (oos2!=null) oos2.close();
+				   if (comunicationSocket!=null) comunicationSocket.close();
 			   }
 		   }catch (Exception e){
 			   e.printStackTrace();
@@ -149,21 +176,6 @@ public class FileServer {
 		return digest;
 	}
 	
-	
-//	public static String getDigest(InputStream is, MessageDigest md, int byteArraySize)
-//			throws NoSuchAlgorithmException, IOException {
-//
-//		md.reset();
-//		byte[] bytes = new byte[byteArraySize];
-//		int numBytes;
-//		while ((numBytes = is.read(bytes)) != -1) {
-//			md.update(bytes, 0, numBytes);
-//		}
-//		byte[] digest = md.digest();
-//		String result = new String(Hex.encodeHex(digest));
-//		return result;
-//	}
-	
 	Socket getDirectoryServerSocket(){
 		Socket socket=null;
 		do{
@@ -187,6 +199,7 @@ public class FileServer {
 		return socket;
 		
 	}
+	
 	void startServer(String fileStoragePath,String[] args){
 		try {
 			Config.init(args);
