@@ -43,6 +43,9 @@ public class EventBus implements Runnable {
     public static EventBus getInstance() {
         if(eventBroadcaster == null) {
             eventBroadcaster = new EventBus();
+            for(EventType eventType: EventType.values()) {
+                eventBroadcaster.listenersMap.put(eventType, new HashSet<>());
+            }
         }
         return eventBroadcaster;
     }
