@@ -1,5 +1,7 @@
 package pl.edu.pw.elka.rso.manage.events;
 
+import pl.edu.pw.elka.rso.manage.server.ConnectionHandler;
+
 import java.util.*;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ConcurrentHashMap;
@@ -46,6 +48,11 @@ public class EventBus implements Runnable {
     }
 
     public EventBus() {
+        // stub listeners
+        for(EventType eventType: EventType.values()) {
+            eventBroadcaster.listenersMap.put(eventType, new HashSet<>());
+        }
+
         new Thread(this).start();
     }
 
@@ -76,6 +83,8 @@ public class EventBus implements Runnable {
             try {
                 Event event = eventsQueue.take();
 
+
+
                 for(EventListener eventListener: listenersMap.get(event.getType())) {
 
                     // check if the event source is the same as event listener
@@ -97,5 +106,15 @@ public class EventBus implements Runnable {
         }
     }
 
+
+    public void unsubscribeFromAllEvents(EventListener eventListener) {
+        for(EventType eventType: EventType.values()) {
+            unsubscribeFromEvent(eventListener, eventType);
+        }
+    }
+
+    private void unsubscribeFromEvent(EventListener eventListener, EventType eventType) {
+        listenersMap.get(eventType).remove(eventListener);
+    }
 
 }

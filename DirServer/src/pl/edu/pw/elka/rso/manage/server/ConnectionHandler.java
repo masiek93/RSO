@@ -127,9 +127,12 @@ public class ConnectionHandler implements Runnable, EventListener {
             setConnected(false);
             eventBus.publish(new NodeDisconnectedEvent(clientNode, clientNode.getId()));
 
-            if (clientNode.getId() != null)
+            if (clientNode.getId() != null) {
+                // deregister this client node from node register & unsubscribe from eventBus,
+                // so garbage collecter can remove this object
                 nodeRegister.deregisterNode(clientNode.getId());
-
+                eventBus.unsubscribeFromAllEvents(this);
+            }
 
             if (!socket.isClosed()) {
                 try {
