@@ -19,13 +19,13 @@ public class SendFileList {
 	 */
 	public SendFileList()
 	{
-		db = new db_operations();
+		db = new db_operations("jdbc:sqlite:test8.db");
 		generateFileList();
 	}
 	
 	public void generateFileList()
 	{
-		path_list = db.generate_path_list(3);
+		path_list = db.generate_path_list();
 	}
 	
 	public List<String> getFileList()

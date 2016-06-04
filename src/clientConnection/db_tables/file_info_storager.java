@@ -5,7 +5,7 @@
  * @author wyq
  *
  */
-package clientConnection.file_info;
+package clientConnection.db_tables;
 
 public class file_info_storager{
     private int file_id; //id pliku
@@ -21,6 +21,23 @@ public class file_info_storager{
         this.size = size;        
         this.creation_time = creation_time;
     }
+    
+    
+    public int get_file_id(){
+    	return this.file_id;
+    }
+    
+    public double get_size(){
+    	return this.size;
+    }
+    
+    public String get_name(){
+    	return this.name;
+    }
+    public String get_creation_time(){
+    	return this.creation_time;
+    }
+    
     @Override
     public String toString() {
         return +file_id+" "+name+" "+size+" "+creation_time;
