@@ -91,7 +91,7 @@ public class FileServer {
 					   fh.downloadFile(path, fileSocket, (int)(1.05*ufm.getSizeInBytes()));
 					   // send notification to directory server
 					   // TODO add hash
-					   confirmationMessageToDirectoryServer(socketToDirectoryServer,Type.FILE_RECIVED,Status.SUCCESSFUL,ufm.getId(),null);
+					   confirmationMessageToDirectoryServer(socketToDirectoryServer,Type.FILE_RECIVED,Status.SUCCESSFUL,ufm.getId(), getDigest(path));
 				   }
 			   }finally{
 				   if (ois!=null) ois.close();
