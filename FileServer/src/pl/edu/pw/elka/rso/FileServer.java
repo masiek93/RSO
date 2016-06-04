@@ -95,7 +95,7 @@ public class FileServer {
 					   
 					   fh.downloadFile(path, fileSocket, (int)(1.05*ufm.getSizeInBytes()));
 					   // send notification to directory server
-					   confirmationMessageToDirectoryServer(socketToDirectoryServer,Type.FILE_RECIVED,Status.SUCCESSFUL,ufm.getId(), getDigest(path));
+					   confirmationMessageToDirectoryServer(socketToDirectoryServer,Type.FILE_RECIVED,Status.SUCCESSFUL,ufm.getId(), getDigest(path),serverID);
 				   }
 				   if (object instanceof ForwardFileMessage){
 					   ForwardFileMessage ffm= (ForwardFileMessage) object;
@@ -130,12 +130,13 @@ public class FileServer {
 		   }
 	}
 
-	void confirmationMessageToDirectoryServer(Socket socketToDirectoryServer, Type type,Status status, String id,byte[] hash){
+	void confirmationMessageToDirectoryServer(Socket socketToDirectoryServer, Type type,Status status, String id,byte[] hash,int serverID){
 		ConfirmationMessage cm = new ConfirmationMessage();
 		cm.setStatus(status);
 		cm.setType(type);
 		cm.setId(id);
 		cm.setHash(hash);
+		cm.setServerID(serverID);
 		
 		ObjectOutputStream oos_dirServer = null;
 		try {
