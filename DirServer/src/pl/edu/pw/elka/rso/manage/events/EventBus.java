@@ -41,6 +41,9 @@ public class EventBus implements Runnable {
     public static EventBus getInstance() {
         if(eventBroadcaster == null) {
             eventBroadcaster = new EventBus();
+            for(EventType eventType: EventType.values()) {
+                eventBroadcaster.listenersMap.put(eventType, new HashSet<>());
+            }
         }
         return eventBroadcaster;
     }
@@ -75,6 +78,8 @@ public class EventBus implements Runnable {
         while(true) {
             try {
                 Event event = eventsQueue.take();
+
+
 
                 for(EventListener eventListener: listenersMap.get(event.getType())) {
 
