@@ -39,7 +39,7 @@ public class FileHandlerTest {
 			    		try {
 				    		socket_server = servsock.accept();
 				    		System.out.println("Server: Accepted connection : " + socket_server);
-				    		fh.uploadFile(FILE_TO_SEND, socket_server);
+				    		fh.uploadFile(FILE_TO_SEND, socket_server,0);
 			    		}finally{
 			    			if (socket_server!=null) socket_server.close();
 			    		}
@@ -99,7 +99,7 @@ public class FileHandlerTest {
 			    		try {
 				    		socket_server = servsock.accept();
 				    		System.out.println("Server: Accepted connection : " + socket_server);
-				    		fh.uploadFile(FILE_TO_SEND, socket_server);
+				    		fh.uploadFile(FILE_TO_SEND, socket_server,0);
 			    		}finally{
 			    			if (socket_server!=null) socket_server.close();
 			    		}
@@ -138,4 +138,70 @@ public class FileHandlerTest {
 			assertTrue(false);
 	}
 
+	@Test
+	public void testDownloadOfFileChunk() {
+		System.out.println("\n Test: testDownloadFile() \n");
+		String new_client_file="downloaded_file_2_10.txt";
+
+		Path path = Paths.get(new_client_file);
+		try {
+			Files.deleteIfExists(path);
+		} catch (IOException e1) {
+			// TODO Auto-generated catch block
+			System.out.println("File deleting problems for:"+new_client_file);
+			e1.printStackTrace();
+		}
+		
+		
+		
+		Thread t = new Thread()
+		{
+		    public void run() {
+		    	try {
+		    		servsock = new ServerSocket(SOCKET_PORT);
+		    		while (true){
+		    			System.out.println("Server: Waiting...");
+			    		try {
+				    		socket_server = servsock.accept();
+				    		System.out.println("Server: Accepted connection : " + socket_server);
+				    		fh.uploadFile(FILE_TO_SEND, socket_server,2);
+			    		}finally{
+			    			if (socket_server!=null) socket_server.close();
+			    		}
+		    		}
+		    	}catch (Exception e) {
+		    		System.out.println("server socket: "+e.getMessage()+" "+e.toString());// TODO: handle exception
+		    	}
+		    }
+		};
+		
+		t.start();
+		for (int i=0;i<2;i++){
+			try{
+				File test_file = new File (FILE_TO_SEND);
+				socket_client = new Socket(SERVER, SOCKET_PORT);
+				System.out.println("Client: connected : " + socket_client);
+				fh.downloadFile(new_client_file, socket_client,(int)(1.05*test_file.length()));
+//				1.05 alocate a bit bigger array so the stream can return -1 and everyone is happy
+			}catch (Exception e) {
+	    		System.out.println("Client socket: "+e.getMessage()+" "+e.toString());// TODO: handle exception
+	    	}
+		}
+		t.stop();
+		String nxt_ln=null;
+		try{
+			File tested_file = new File(new_client_file);
+			Scanner scanner = new Scanner(tested_file);
+			nxt_ln=scanner.nextLine();
+			scanner.close();
+		}catch (Exception e) {
+    		System.out.println("Scanner: "+e.toString());// TODO: handle exception
+    	}
+		if (nxt_ln.toLowerCase().contains("elis, malesuada ultricies.".toLowerCase())  ) 
+			assertTrue(true);
+		else
+			assertTrue(false);
+	}
 }
+
+

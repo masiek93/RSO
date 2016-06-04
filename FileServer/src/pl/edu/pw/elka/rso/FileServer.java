@@ -9,8 +9,10 @@ import java.io.InputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.OutputStream;
+import java.math.BigInteger;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.nio.charset.Charset;
 import java.nio.file.DirectoryNotEmptyException;
 import java.nio.file.Files;
 import java.nio.file.NoSuchFileException;
@@ -63,7 +65,7 @@ public class FileServer {
 					   DownloadFileMessage dgm= (DownloadFileMessage) object;
 						   FileHandler fh = new FileHandler();
 						   fileSocket=fileServsock.accept();
-						   fh.uploadFile(fileStoragePath+"/"+dgm.getId(), fileSocket);					   
+						   fh.uploadFile(fileStoragePath+"/"+dgm.getId(), fileSocket,dgm.getPartOfFile());					   
 				   }
 				   if (object instanceof DeleteFileMessage){
 					   DeleteFileMessage dflm = (DeleteFileMessage) object;
@@ -122,6 +124,29 @@ public class FileServer {
 	   	}catch (NullPointerException e) {
 	   		e.printStackTrace();
 	   	}
+	}
+	
+	static byte[] getDigest(String filename){
+		MessageDigest m = null;
+		String string=null;
+		try {
+			Path p1=Paths.get(filename);
+			Charset charset = Charset.forName("utf-8");
+			string=Files.readAllLines(p1,charset).toString();
+			m = MessageDigest.getInstance("MD5");
+		} catch (NoSuchAlgorithmException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		m.reset();
+		m.update(string.getBytes());
+		byte[] digest = m.digest();
+		BigInteger bigInt = new BigInteger(1,digest);
+		System.out.println( "hashed file "+filename+": "+bigInt.toString(16));
+		return digest;
 	}
 	
 	

@@ -11,8 +11,9 @@ import java.io.OutputStream;
 import java.net.Socket;
 
 public class FileHandler {
-	public void uploadFile(String filename, Socket socket){
-		
+//	assumption file is build from 10 parts, 0 - means whole file
+	public void uploadFile(String filename, Socket socket, int part){
+		double divider=10.0;
 		try{
 			OutputStream os = null;
 			FileInputStream fis = null;
@@ -23,9 +24,19 @@ public class FileHandler {
 				os = socket.getOutputStream();
 				fis = new FileInputStream(myFile);
 		        bis = new BufferedInputStream(fis);
-		        bis.read(mybytearray,0,mybytearray.length);
-				System.out.println("Sending " + filename + "(" + mybytearray.length + " bytes)");
-				os.write(mybytearray,0,mybytearray.length);
+		        bis.read(mybytearray,0,mybytearray.length);			
+				if (part==0){
+					System.out.println("Sending " + filename + "(" + mybytearray.length + " bytes)");
+					os.write(mybytearray,0,mybytearray.length);
+				}
+				else {
+					int beginning = (int)(mybytearray.length*(part-1)/divider); //(int)Math.ceil(mybytearray.length*(part-1)/divider);
+					int length=(int)(mybytearray.length/divider);
+					if (part==(int)divider)
+						length= mybytearray.length-(int)((divider-1)*mybytearray.length/divider);
+					System.out.println("Sending: "+part+" of "+divider+" from file: "+filename+". Beginning: "+beginning+" length:"+length);
+					os.write(mybytearray,beginning,length);
+				}
 		        os.flush();
 			}finally{
 				if (bis != null) bis.close();

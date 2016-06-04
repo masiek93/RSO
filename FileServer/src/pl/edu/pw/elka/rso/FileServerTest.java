@@ -9,9 +9,14 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.math.BigInteger;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.UnknownHostException;
+import java.nio.charset.Charset;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Scanner;
 import java.util.Vector;
 
@@ -108,8 +113,8 @@ public class FileServerTest {
 		    }
 		}
 		t.stop();
-		System.out.println(((String[])result)[0]);
-		assertEquals(null, "test_file.txt",  ((String[])result)[0]);
+		System.out.println(((String[])result)[1]);
+		assertEquals(null, "test_file.txt",  ((String[])result)[1]);
 	}
 	
 	@Test
@@ -224,7 +229,7 @@ public class FileServerTest {
 					socket=new Socket(SERVER,FILE_SOCKET_PORT);
 					System.out.println("Client: Connecting File socket");
 					FileHandler fh =new FileHandler();
-					fh.uploadFile(filename,socket);	
+					fh.uploadFile(filename,socket,0);	
 //					result=ois.readObject();
 				}finally{
 					ois.close();
@@ -245,6 +250,83 @@ public class FileServerTest {
 
 		
 	}
+	
+	
+	@Test
+	public void testDownloadFilePartFromServer() throws InterruptedException {
+		String recived_file = "recived_in_chunks.txt";
+		deleteFile(recived_file);
+		
+		Thread t = new Thread()
+		{
+		    public void run() {
+		    	server();
+		    }
+		};
+		t.start();
+		
+		
+		Thread.sleep(5);
+		Object result=null;
+		DownloadFileMessage dfm= new DownloadFileMessage();
+		dfm.setId("test_file.txt");
+//		TODO implement partial download
+		for (int j=1;j<11;j++){
+			dfm.setPartOfFile(j);
+				try{
+					ObjectInputStream ois=null;
+					ObjectOutputStream oos=null;
+					Socket file_socket_client=null;
+					InputStream is = null;
+					FileOutputStream fos = null;
+				    BufferedOutputStream bos = null;
+					try{
+						socket_client = new Socket(SERVER, SOCKET_PORT);
+						System.out.println("Connecting...");
+	//					order of oos and ois is important (should be opposite to the communicator)
+						oos = new ObjectOutputStream(socket_client.getOutputStream());
+						ois = new ObjectInputStream(socket_client.getInputStream());
+					    
+						oos.writeObject(dfm);
+						file_socket_client = new Socket(SERVER, FILE_SOCKET_PORT);
+						System.out.println("Connecting to "+file_socket_client);
+						
+						is = file_socket_client.getInputStream();
+						
+						byte [] mybytearray  = new byte [10240];
+						int current = 0;
+						int bytesRead = is.read(mybytearray,0,mybytearray.length);
+					    current = bytesRead;
+						do {
+					         bytesRead = is.read(mybytearray, current, (mybytearray.length-current));
+					         if(bytesRead >= 0) current += bytesRead;
+					    } while(bytesRead > -1);
+						fos = new FileOutputStream(recived_file,true);
+					    bos = new BufferedOutputStream(fos);
+					    bos.write(mybytearray, 0 , current);
+					    bos.flush();
+						
+						System.out.println("Client: file content: "+mybytearray);
+					}finally{
+						ois.close();
+					    oos.close();
+					    is.close();
+					    file_socket_client.close();
+					    if (fos != null) fos.close();
+					    if (bos != null) bos.close();
+					}
+				}catch (Exception e) {
+			    	System.out.println("Client socket: "+e.getMessage()+" "+e.toString());// TODO: handle exception
+			    }
+		}
+		t.stop();
+		BigInteger bigInt1 = new BigInteger(1,FileServer.getDigest(recived_file));
+		BigInteger bigInt2 = new BigInteger(1,FileServer.getDigest("test_file.txt"));
+		assertEquals(bigInt1.toString(16), bigInt2.toString(16));
+	}
+	
+	
+	
 	void server(){
 		FileServer fs=new FileServer();
 		try {
@@ -261,7 +343,16 @@ public class FileServerTest {
     	}
 		
 	}
-	
+	void deleteFile(String file){
+		Path path = Paths.get(file);
+		try {
+			Files.deleteIfExists(path);
+		} catch (IOException e1) {
+			// TODO Auto-generated catch block
+			System.out.println("File deleting problems for:"+file);
+			e1.printStackTrace();
+		}
+	}
 	
 
 }
