@@ -10,6 +10,7 @@ import java.util.List;
  * DirNode and FileNode need to extends this class on their own.
  */
 public abstract class NodeScreen implements Runnable {
+    private final long screenStarted = System.currentTimeMillis();
     private static final int SCREEN_REFRESH_INTERVAL = 1000; // ms
     private static final int MAX_LOG_ENTRIES = 10;
     protected static final String DASHED_LINE_THIN = "12345678".replaceAll("\\d", "----------");
@@ -20,6 +21,7 @@ public abstract class NodeScreen implements Runnable {
     protected static NodeScreen instance;
     private List<String> logEntries = new LinkedList<>();
     private int currentLogEntryNumber = 0;
+    private final StringBuilder buffer = new StringBuilder();
 
     protected NodeScreen() {
         this.isWindowsOS = System.getProperty("os.name").contains("Windows");
@@ -37,13 +39,18 @@ public abstract class NodeScreen implements Runnable {
             //noinspection InfiniteLoopStatement
             while (true) {
                 clearScreen();
+
                 print(DASHED_LINE_THICK);
-                print("Czas serwera: " + getTimestampFormat(1, false), new Date());
+                printNodeTime();
                 print(DASHED_LINE_THICK);
+
                 printAllInfo();
+
                 print(DASHED_LINE_THICK);
                 printLog();
                 print(DASHED_LINE_THICK);
+
+                flushToScreen();
                 Thread.sleep(SCREEN_REFRESH_INTERVAL);
             }
         } catch (Throwable t) {
@@ -60,6 +67,10 @@ public abstract class NodeScreen implements Runnable {
         }
     }
 
+    private void printNodeTime() {
+        print("Czas serwera: " + getTimestampFormat(1, false) + ", czas pracy: %2$tH:%2$tM:%2$tS", new Date(), new Date(System.currentTimeMillis() - screenStarted - 3600000));
+    }
+
     protected abstract void printAllInfo();
 
     // http://stackoverflow.com/a/3758880/2104291
@@ -72,7 +83,12 @@ public abstract class NodeScreen implements Runnable {
     }
 
     protected void print(String format, Object... arguments) {
-        System.out.println(String.format(format, arguments));
+        buffer.append(String.format(format, arguments)).append('\n');
+    }
+
+    private void flushToScreen() {
+        System.out.println(buffer.toString());
+        buffer.setLength(0);
     }
 
     private void printLog() {
