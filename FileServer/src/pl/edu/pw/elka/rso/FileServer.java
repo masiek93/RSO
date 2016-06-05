@@ -1,14 +1,10 @@
 package pl.edu.pw.elka.rso;
 
-import pl.edu.pw.elka.rso.config.Config;
-import pl.edu.pw.elka.rso.heartBeat.ServerDetails;
-
+//import pl.edu.pw.elka.rso.config.Config;
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
-import java.io.OutputStream;
 import java.math.BigInteger;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -18,10 +14,12 @@ import java.nio.file.Files;
 import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.security.DigestInputStream;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.util.Vector;
+
+import javax.xml.bind.JAXBException;
+
+import pl.edu.pw.elka.rso.manage.util.Config;
 //import org.apache.commons.codec.binary.Hex;
 
 public class FileServer {
@@ -201,29 +199,17 @@ public class FileServer {
 		
 	}
 	
-	void startServer(String fileStoragePath,String[] args){
-		try {
-			Config.init(args);
-		} catch (IOException e1) {
-			// TODO Auto-generated catch block
-			e1.printStackTrace();
-		}
-		ServerDetails sd1=Config.INSTANCE.getDirectoryServers().get(0);
-		ServerDetails sd2=Config.INSTANCE.getDirectoryServers().get(1);
+	void startServer(String fileStoragePath,String[] args) throws IOException, JAXBException{
 		
-		if ( sd1.isRedundant() && !sd2.isRedundant()){
-			RedundantDirectoryServerAddress=sd1.getServerAddress().toString();
-			RedundantDirectoryServerPort=sd1.getPort();
+		Config cnf =  Config.load(args[0]);
+		
 			
-			directoryServerAddress = sd2.getServerAddress().toString();
-			directoryServerPort = sd2.getPort();
-		}else{
-			RedundantDirectoryServerAddress=sd2.getServerAddress().toString();
-			RedundantDirectoryServerPort=sd2.getPort();
+		directoryServerAddress = cnf.directoryServerList.get(0).address;
+		directoryServerPort = cnf.directoryServerList.get(0).nodesManagementPort;
+		
+		RedundantDirectoryServerAddress=cnf.directoryServerList.get(1).address;
+		RedundantDirectoryServerPort=cnf.directoryServerList.get(1).nodesManagementPort;
 			
-			directoryServerAddress = sd1.getServerAddress().toString();
-			directoryServerPort = sd1.getPort();
-		}
 		//TODO Czytam konfiguracje i zapisuje adres i port  SK i  SKR
 		Socket socketToDirectoryServer = getDirectoryServerSocket();
 		ObjectInputStream ois=null;
@@ -254,7 +240,15 @@ public class FileServer {
 	public static void main(String[] args) {
 		String fileStoragePath="storage";
 		FileServer fs= new FileServer();
-		fs.startServer(fileStoragePath,args);
+		try {
+			fs.startServer(fileStoragePath,args);
+		} catch (IOException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		} catch (JAXBException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}
 		ServerSocket servsock = null;
 		ServerSocket fileServsock = null;
 		Socket socketToDirectoryServer = fs.getDirectoryServerSocket();

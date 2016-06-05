@@ -1,6 +1,7 @@
 package pl.edu.pw.elka.rso;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 import java.io.BufferedOutputStream;
 import java.io.File;
@@ -13,18 +14,14 @@ import java.math.BigInteger;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.UnknownHostException;
-import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Scanner;
-import java.util.Vector;
 
-import junit.framework.Assert;
-
-import org.hamcrest.core.IsInstanceOf;
 import org.junit.Before;
 import org.junit.Test;
+
 
 public class FileServerTest {
 	final int SOCKET_PORT = 13267;
