@@ -102,10 +102,18 @@ public class NodeRegister implements Serializable {
     }
 
     public Collection<Node> getAliveDirectoryNodes() {
-        return getAliveNodes().stream().filter(Node::isDirectoryServer).collect(Collectors.toList());
+        return getAliveNodes().stream().filter(n -> n.isDirectoryServer() && n.isAlive()).collect(Collectors.toList());
     }
 
     public Collection<Node> getDirectoryNodes() {
         return getNodes().stream().filter(Node::isDirectoryServer).collect(Collectors.toList());
+    }
+
+    public Collection<Node> getAliveFileNodes() {
+        return getAliveNodes().stream().filter(n -> n.isAlive() && !n.isDirectoryServer()).collect(Collectors.toList());
+    }
+
+    public Collection<Node> getFileNodes() {
+        return getNodes().stream().filter(n -> !n.isDirectoryServer()).collect(Collectors.toList());
     }
 }

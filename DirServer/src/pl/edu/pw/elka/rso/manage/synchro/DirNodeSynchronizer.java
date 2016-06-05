@@ -8,6 +8,7 @@ import pl.edu.pw.elka.rso.manage.events.Handler;
 import pl.edu.pw.elka.rso.manage.node.Node;
 import pl.edu.pw.elka.rso.manage.node.NodeRegister;
 import pl.edu.pw.elka.rso.manage.node.NodeType;
+import pl.edu.pw.elka.rso.manage.screen.NodeScreen;
 
 public class DirNodeSynchronizer extends AbstractEventListener {
 
@@ -27,7 +28,7 @@ public class DirNodeSynchronizer extends AbstractEventListener {
                 Long senderId = event.getSourceId();
                 Node node = (Node) event.getData();
                 if(node.getNodeType() == NodeType.DIRECTORY_NODE) {
-                    System.out.println("syncing data with directory node");
+                    NodeScreen.addLogEntry("syncing data with directory node");
                     // TODO: how to sync? data for syncing?
                     eventBus.publish(new DirNodeSynchroEvent("dummy synchro", getId(), senderId));
                 }

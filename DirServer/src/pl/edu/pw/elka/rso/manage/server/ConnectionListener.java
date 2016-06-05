@@ -3,6 +3,7 @@ package pl.edu.pw.elka.rso.manage.server;
 import pl.edu.pw.elka.rso.manage.node.Node;
 import pl.edu.pw.elka.rso.manage.node.NodeRegister;
 import pl.edu.pw.elka.rso.manage.node.NodeType;
+import pl.edu.pw.elka.rso.manage.screen.NodeScreen;
 import pl.edu.pw.elka.rso.manage.util.LongIO;
 import pl.edu.pw.elka.rso.manage.util.LongIOException;
 import pl.edu.pw.elka.rso.ssl.SServerSocketFactory;
@@ -48,7 +49,6 @@ public class ConnectionListener implements Runnable {
             try {
                 LongIO.writeLong(idFilePath, id);
             } catch (LongIOException e1) {
-                System.out.println(e1.getMessage());
                 e1.printStackTrace();
             }
         }
@@ -75,7 +75,7 @@ public class ConnectionListener implements Runnable {
     @Override
     public void run() {
         try {
-            System.out.println("server " + thisNode + "  is ready for new connections");
+            NodeScreen.addLogEntry("server " + thisNode + "  is ready for new connections");
             while (isRunning()) {
 
                 Socket sock = serverSocket.accept();

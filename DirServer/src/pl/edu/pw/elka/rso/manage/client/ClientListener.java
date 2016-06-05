@@ -10,6 +10,7 @@ import pl.edu.pw.elka.rso.manage.messages.Messages;
 import pl.edu.pw.elka.rso.manage.node.Node;
 import pl.edu.pw.elka.rso.manage.node.NodeRegister;
 import pl.edu.pw.elka.rso.manage.node.NodeType;
+import pl.edu.pw.elka.rso.manage.screen.NodeScreen;
 import pl.edu.pw.elka.rso.manage.util.Config;
 import pl.edu.pw.elka.rso.manage.util.LongIO;
 import pl.edu.pw.elka.rso.manage.util.LongIOException;
@@ -152,6 +153,14 @@ public abstract class ClientListener implements Runnable {
         thisNode.setId(id);
     }
 
+    public Node getThisNode() {
+        return thisNode;
+    }
+
+    public Node getOtherNode() {
+        return otherNode;
+    }
+
 
     /**
      * initial step of the protocol - exchange informations between node manager and this node.
@@ -165,7 +174,7 @@ public abstract class ClientListener implements Runnable {
         // server sends its information (nodes that it sees, etc)
         serverInit();
 
-        System.out.println("initial phase completed with " + otherNode);
+        NodeScreen.addLogEntry("initial phase completed with " + otherNode);
     }
 
     /**
@@ -211,7 +220,7 @@ public abstract class ClientListener implements Runnable {
             }
         }
 
-        System.out.println("client has sent its parameters: " + thisNode);
+        NodeScreen.addLogEntry("client has sent its parameters: " + thisNode);
     }
 
     private void serverInit() throws IOException, ClassNotFoundException {
@@ -277,7 +286,7 @@ public abstract class ClientListener implements Runnable {
             try {
                 socket = SSocketFactory.createSocket(node.getAddress(), node.getPort());
                 otherNode = node;
-                System.out.println("connected to " + node);
+                NodeScreen.addLogEntry("connected to " + node);
                 return;
             } catch (IOException e) {
 
@@ -290,7 +299,7 @@ public abstract class ClientListener implements Runnable {
 
 
     private void handleEvent(Event data) {
-        System.out.println("received new event " + data);
+        NodeScreen.addLogEntry("received new event " + data);
         Handler h = handlers.get(data.getType());
         if(h != null) {
             h.handleEvent(data);

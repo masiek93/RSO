@@ -4,6 +4,9 @@ package pl.edu.pw.elka.rso.manage.test;
 import pl.edu.pw.elka.rso.manage.client.ClientListener;
 import pl.edu.pw.elka.rso.manage.client.DirNodeListener;
 import pl.edu.pw.elka.rso.manage.node.NodeRegister;
+import pl.edu.pw.elka.rso.manage.screen.DirNodeScreen;
+import pl.edu.pw.elka.rso.manage.screen.DirNodeScreenDataProvider;
+import pl.edu.pw.elka.rso.manage.screen.NodeScreen;
 import pl.edu.pw.elka.rso.manage.server.ConnectionListener;
 import pl.edu.pw.elka.rso.manage.synchro.DirNodeSynchronizer;
 
@@ -20,14 +23,14 @@ public class DirNodeTest {
         // run dir node client. If it wont connect then run server.
 
         tryRunClient(args);
-        System.out.println("dir node  didnt find any dir servers");
+        NodeScreen.addLogEntry("dir node  didnt find any dir servers");
         runServer(args);
     }
 
     private static void runServer(String[] args) throws IOException, InterruptedException {
         ConnectionListener conList = new ConnectionListener(args[0], Integer.valueOf(args[1]));
 
-        System.out.println("runnng a dir node server");
+        NodeScreen.addLogEntry("runnng a dir node server");
         conList.start();
 
         DirNodeSynchronizer dns = new DirNodeSynchronizer();
@@ -44,6 +47,7 @@ public class DirNodeTest {
 
     private static void tryRunClient(String[] args) throws InterruptedException {
         ClientListener c = new DirNodeListener(args[0], new Integer(args[1]));
+        DirNodeScreen.start(new DirNodeScreenDataProvider(c));
         c.start();
 
         while (c.isTrying()) {
@@ -57,8 +61,8 @@ public class DirNodeTest {
     private static void printAliveNodes() throws InterruptedException {
         NodeRegister nodeRegister = NodeRegister.getInstance();
         if (nodeRegister != null) {
-            System.out.println("nodes: ");
-            nodeRegister.getAliveNodes().forEach(System.out::println);
+            NodeScreen.addLogEntry("nodes: ");
+            nodeRegister.getAliveNodes().forEach(NodeScreen::addLogEntry);
         }
     }
 

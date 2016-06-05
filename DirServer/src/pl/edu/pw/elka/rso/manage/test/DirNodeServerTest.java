@@ -2,6 +2,7 @@ package pl.edu.pw.elka.rso.manage.test;
 
 
 import pl.edu.pw.elka.rso.manage.node.NodeRegister;
+import pl.edu.pw.elka.rso.manage.screen.NodeScreen;
 import pl.edu.pw.elka.rso.manage.server.ConnectionListener;
 
 import javax.xml.bind.JAXBException;
@@ -18,8 +19,8 @@ public class DirNodeServerTest {
         while(conList.isRunning()) {
             NodeRegister nodeRegister = NodeRegister.getInstance();
             if(nodeRegister != null) {
-                System.out.println("servers: ");
-                nodeRegister.getAliveNodes().forEach(System.out::println);
+                NodeScreen.addLogEntry("servers: ");
+                nodeRegister.getAliveNodes().forEach(NodeScreen::addLogEntry);
             }
             Thread.sleep(2000);
         }

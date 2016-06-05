@@ -5,6 +5,7 @@ import pl.edu.pw.elka.rso.manage.events.EventType;
 import pl.edu.pw.elka.rso.manage.events.Handler;
 import pl.edu.pw.elka.rso.manage.node.Node;
 import pl.edu.pw.elka.rso.manage.node.NodeType;
+import pl.edu.pw.elka.rso.manage.screen.NodeScreen;
 import pl.edu.pw.elka.rso.ssl.SSocketFactory;
 
 import java.io.IOException;
@@ -59,8 +60,8 @@ public class DirNodeListener extends ClientListener {
             @Override
             public void handleEvent(Event event) {
                 // dummy handler for synchronization
-                System.out.println("syncing with the master dir node");
-                System.out.println("got " + event.getData() + " " + " from server");
+                NodeScreen.addLogEntry("syncing with the master dir node");
+                NodeScreen.addLogEntry("got " + event.getData() + " " + " from server");
             }
         });
     }
@@ -74,7 +75,7 @@ public class DirNodeListener extends ClientListener {
                 if(thisNode.equals(node))
                     continue;
                 socket = SSocketFactory.createSocket(node.getAddress(), node.getPort());
-                System.out.println("connected to " + node);
+                NodeScreen.addLogEntry("connected to " + node);
                 otherNode = node;
                 return;
             } catch (IOException e) {

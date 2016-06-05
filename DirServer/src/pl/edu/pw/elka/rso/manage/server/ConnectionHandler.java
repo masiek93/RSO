@@ -7,6 +7,7 @@ import pl.edu.pw.elka.rso.manage.messages.Type;
 import pl.edu.pw.elka.rso.manage.node.Node;
 import pl.edu.pw.elka.rso.manage.node.NodeRegister;
 import pl.edu.pw.elka.rso.manage.node.NodeType;
+import pl.edu.pw.elka.rso.manage.screen.NodeScreen;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;
@@ -107,7 +108,7 @@ public class ConnectionHandler implements Runnable, EventListener {
                     } else {
                         Event ev = eventQueue.poll();
                         if (ev != null) {
-                            System.out.println("new event " + ev + " is sent to id = " + clientNode.getId());
+                            NodeScreen.addLogEntry("new event " + ev + " is sent to id = " + clientNode.getId());
                             sendEvent(ev);
                         }
                     }
@@ -148,14 +149,14 @@ public class ConnectionHandler implements Runnable, EventListener {
 
     private void initialPhase() throws IOException, ClassNotFoundException {
 
-        System.out.println("A new client has just connected!");
+        NodeScreen.addLogEntry("A new client has just connected!");
         clientInit();
         // publish this event to the event bus
         eventBus.publish(new NodeConnectedEvent(clientNode, clientNode.getId()));
         nodeRegister.registerNode(clientNode);
 
         serverInit();
-        System.out.println("initial phase completed." + clientNode);
+        NodeScreen.addLogEntry("initial phase completed." + clientNode);
     }
 
     private void sendEvent(Event event) throws IOException {
@@ -214,7 +215,7 @@ public class ConnectionHandler implements Runnable, EventListener {
 
     @Override
     public void notify(Event event) {
-        System.out.println(clientNode + " is going to receive event " + event);
+        NodeScreen.addLogEntry(clientNode + " is going to receive event " + event);
         eventQueue.offer(event);
     }
 

@@ -3,6 +3,7 @@ package pl.edu.pw.elka.rso.manage.test;
 import pl.edu.pw.elka.rso.manage.client.ClientListener;
 import pl.edu.pw.elka.rso.manage.client.DirNodeListener;
 import pl.edu.pw.elka.rso.manage.node.NodeRegister;
+import pl.edu.pw.elka.rso.manage.screen.NodeScreen;
 
 import java.io.IOException;
 
@@ -15,7 +16,7 @@ public class DirNodeClientTest {
 
         tryRunClient(args);
 
-        System.out.println("dir node didnt find any servers nodes");
+        NodeScreen.addLogEntry("dir node didnt find any servers nodes");
 
     }
 
@@ -27,8 +28,8 @@ public class DirNodeClientTest {
             while (c.isConnected()) {
                 NodeRegister nodeRegister = NodeRegister.getInstance();
                 if (nodeRegister != null) {
-                    System.out.println("servers: ");
-                    nodeRegister.getAliveNodes().forEach(System.out::println);
+                    NodeScreen.addLogEntry("servers: ");
+                    nodeRegister.getAliveNodes().forEach(NodeScreen::addLogEntry);
                 }
                 Thread.sleep(2000);
             }
