@@ -39,7 +39,7 @@ public class Client {
 		final String HOST = "127.0.0.1"; // localhost
 		final int KATALOG_SERVER_PORT = 60010;
 		final int FILE_SERVER_FILE_TRANSFER_PORT = 13267;
-		final int FILE_SERVER_COMMUNICATION_PORT = 13267;
+		final int FILE_SERVER_COMMUNICATION_PORT = 11111;
 		Socket socketForCatalogServer;
 		Socket socketForFileServerCommunication;
 		Socket socketForFileServerFileTransfer;
@@ -166,8 +166,10 @@ public class Client {
 								.println("Client: AddFileRequest sent to Catalog Server");
 
 						/*
-						 * TODO: otrzymywanie danych od SK o SP do polaczenia
-						 * siê z nim laczenie sie wgrywanie pliku
+						 * TODO: 1.otrzymywanie danych od SK o SP do polaczenia
+						 * siê z nim 
+						 * 2.laczenie sie 
+						 * 3.wgrywanie pliku
 						 */
 						oos.close();
 						ois.close();
@@ -299,10 +301,10 @@ public class Client {
 
 					/* pocz¹tek komunikacji z Serwerem Plików */
 					/*
-					 * TODO: 1.Serwer Katalogowy powinien zwrocic nr PORTU Serwera
-					 * Plikowego do ktorego Klient ma sie polaczyc; 2.Serwer
-					 * Katalogowy powinien zwrocic nazwe z jaka Klient ma
-					 * wgrywac plik na Serwer Plikowy;
+					 * TODO: 1.Serwer Katalogowy powinien zwrocic nr PORTU
+					 * Serwera Plikowego do ktorego Klient ma sie polaczyc;
+					 * 2.Serwer Katalogowy powinien zwrocic nazwe z jaka Klient
+					 * ma wgrywac plik na Serwer Plikowy;
 					 */
 					DownloadFileMessage dfm = new DownloadFileMessage();
 					dfm.setId("test_file.txt"); // tutaj muszê dodaæ, ¿e
@@ -316,6 +318,7 @@ public class Client {
 							ois = null;
 							oos = null;
 							socketForFileServerFileTransfer = null;
+							socketForFileServerCommunication = null;
 							is = null;
 							fos = null;
 							bos = null;
@@ -364,6 +367,7 @@ public class Client {
 								oos.close();
 								is.close();
 								socketForFileServerFileTransfer.close();
+								socketForFileServerCommunication.close();
 								if (fos != null)
 									fos.close();
 								if (bos != null)
