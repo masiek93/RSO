@@ -39,7 +39,7 @@ public class Client {
 		final String HOST = "127.0.0.1"; // localhost
 		final int KATALOG_SERVER_PORT = 60010;
 		final int FILE_SERVER_FILE_TRANSFER_PORT = 13267;
-		final int FILE_SERVER_COMMUNICATION_PORT = 11111;
+		final int FILE_SERVER_COMMUNICATION_PORT = 11111; // chyba trzeba bedzie dostawac port od serwera plikowego a nie z gory go ustawiac
 		Socket socketForCatalogServer;
 		Socket socketForFileServerCommunication;
 		Socket socketForFileServerFileTransfer;
@@ -334,8 +334,10 @@ public class Client {
 								ois = new ObjectInputStream(
 										socketForFileServerCommunication
 												.getInputStream());
-
+								
 								oos.writeObject(dfm);
+								// TODO: w tym miejscu Klient powienien otrzymywac numer portu to transferowania plikow
+								// trzeba to uzgodnic
 								socketForFileServerFileTransfer = new Socket(
 										HOST, FILE_SERVER_FILE_TRANSFER_PORT);
 								System.out.println("Connecting to "
