@@ -199,9 +199,9 @@ public class FileServer {
 		
 	}
 	
-	void startServer(String fileStoragePath,String[] args) throws IOException, JAXBException{
+	void startServer(String fileStoragePath) throws IOException, JAXBException{
 		
-		Config cnf =  Config.load(args[0]);
+		Config cnf =  Config.getInstance();
 		
 			
 		directoryServerAddress = cnf.directoryServerList.get(0).address;
@@ -241,7 +241,7 @@ public class FileServer {
 		String fileStoragePath="storage";
 		FileServer fs= new FileServer();
 		try {
-			fs.startServer(fileStoragePath,args);
+			fs.startServer(fileStoragePath);
 		} catch (IOException e1) {
 			// TODO Auto-generated catch block
 			e1.printStackTrace();

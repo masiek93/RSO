@@ -29,10 +29,6 @@ public class ConfigIO {
         marshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, Boolean.TRUE);
     }
 
-    public void write(String filePath, Config confs) throws JAXBException {
-        marshaller.marshal(confs, new File(filePath));
-    }
-
     public Config read(String filePath) throws JAXBException {
         return (Config) unMarshaller.unmarshal(new File(filePath));
     }

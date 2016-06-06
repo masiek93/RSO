@@ -15,7 +15,7 @@ public class Config {
 
     // static fields, not serialized
     private static Config config;
-    private static String configFile = "resources/config.xml";
+    private final static String configFile = "resources/config.xml";
 
 
     public void Config() {
@@ -28,21 +28,6 @@ public class Config {
         }
         return config;
     }
-
-
-    public void updateFile() throws IOException, JAXBException {
-        ConfigIO.getInstance().write(configFile, this);
-    }
-
-    public static Config load(String configFile) throws IOException, JAXBException {
-        return ConfigIO.getInstance().read(configFile);
-    }
-
-
-    public static Config load() throws IOException, JAXBException {
-        return ConfigIO.getInstance().read(configFile);
-    }
-
 
     public boolean addDirectorySever(DirectoryServerConf directoryServerConf) {
         return directoryServerList.add(directoryServerConf);
