@@ -2,7 +2,7 @@ package pl.edu.pw.elka.rso.manage.screen;
 
 import pl.edu.pw.elka.rso.manage.client.ClientListener;
 import pl.edu.pw.elka.rso.manage.dao.FileDAO;
-import pl.edu.pw.elka.rso.manage.domain.FileDTO;
+import pl.edu.pw.elka.rso.repo.domain.FileDTO;
 import pl.edu.pw.elka.rso.manage.node.Node;
 import pl.edu.pw.elka.rso.manage.node.NodeRegister;
 

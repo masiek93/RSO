@@ -1,8 +1,8 @@
 package pl.edu.pw.elka.rso.manage.server;
 
 
-import pl.edu.pw.elka.rso.manage.util.LongIO;
-import pl.edu.pw.elka.rso.manage.util.LongIOException;
+import pl.edu.pw.elka.rso.util.LongIO;
+import pl.edu.pw.elka.rso.util.LongIOException;
 
 /**
  * Manage id in the system.

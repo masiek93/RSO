@@ -10,9 +10,28 @@ public class Node implements Serializable {
     private boolean alive;
     private String address;
     private int port;
+    private long size; // free space
 
     public Node() {
         this.address = "localhost"; // TODO: fetch the address of this server automatically. https://stackoverflow.com/questions/9481865/getting-the-ip-address-of-the-current-machine-using-java
+    }
+
+
+    public static Node createFileNode(String address, Long id, boolean alive, long size) {
+        return new Node(address, 0, alive, id, NodeType.FILE_NODE, size);
+    }
+
+    public static Node createDirNode(String address, int port, boolean alive, Long id) {
+        return new Node(address, port, alive, id, NodeType.DIRECTORY_NODE, 0);
+    }
+
+    private Node(String address, int port, boolean alive, Long id, NodeType nodeType, long size) {
+        this.address = address;
+        this.alive = alive;
+        this.id = id;
+        this.nodeType = nodeType;
+        this.port = port;
+        this.size = size;
     }
 
     public String getAddress() {
@@ -79,11 +98,30 @@ public class Node implements Serializable {
                 ", id=" + id +
                 ", alive=" + alive +
                 ", port=" + port +
+                ", size=" + size +
                 '}';
     }
 
     public boolean isDirectoryServer() {
         return getNodeType() == NodeType.DIRECTORY_NODE;
     }
+
+    public boolean isFileServer() {
+        return getNodeType() == NodeType.FILE_NODE;
+    }
+
+    public long getSize() {
+        return size;
+    }
+
+    public void updateSize(long updateValue) {
+        this.size += updateValue;
+    }
+
+    public void setSize(long value) {
+        this.size = value;
+    }
+
 }
+
 

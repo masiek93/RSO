@@ -1,5 +1,7 @@
 package pl.edu.pw.elka.rso.manage.server;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import pl.edu.pw.elka.rso.manage.events.*;
 import pl.edu.pw.elka.rso.manage.messages.Message;
 import pl.edu.pw.elka.rso.manage.messages.Messages;
@@ -50,6 +52,8 @@ public class ConnectionHandler implements Runnable, EventListener {
     // the client node. contains information about the client.
     Node clientNode;
 
+    Logger LOGGER = LoggerFactory.getLogger(ConnectionHandler.class);
+
 
     public ConnectionHandler(Socket sock) {
 
@@ -91,10 +95,10 @@ public class ConnectionHandler implements Runnable, EventListener {
             oStr = new ObjectOutputStream(socket.getOutputStream());
             iStr = new ObjectInputStream(socket.getInputStream());
 
+            LOGGER.info("started");
+
             setConnected(true);
-
             initialPhase();
-
 
 
             while (isConnected()) {
@@ -116,14 +120,14 @@ public class ConnectionHandler implements Runnable, EventListener {
                     TimeUnit.MILLISECONDS.sleep(SLEEP_PERIOD_MS);
 
                 } catch (InterruptedException e) {
-                    e.printStackTrace();
+                   LOGGER.error("unexpected error", e);
                 }
 
             }
 
 
         } catch (IOException | ClassNotFoundException e) {
-            e.printStackTrace();
+            LOGGER.error("lost connection with {}", clientNode, e);
         } finally {
             setConnected(false);
             eventBus.publish(new NodeDisconnectedEvent(clientNode, clientNode.getId()));
@@ -139,7 +143,7 @@ public class ConnectionHandler implements Runnable, EventListener {
                 try {
                     socket.close();
                 } catch (IOException e) {
-                    e.printStackTrace();
+                    LOGGER.error("could not close socket connection", e);
                 }
             }
         }
@@ -152,6 +156,9 @@ public class ConnectionHandler implements Runnable, EventListener {
         NodeScreen.addLogEntry("A new client has just connected!");
         clientInit();
         // publish this event to the event bus
+
+        subscribeToSpecificEvents();
+
         eventBus.publish(new NodeConnectedEvent(clientNode, clientNode.getId()));
         nodeRegister.registerNode(clientNode);
 

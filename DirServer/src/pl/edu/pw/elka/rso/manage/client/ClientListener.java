@@ -1,6 +1,8 @@
 package pl.edu.pw.elka.rso.manage.client;
 
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import pl.edu.pw.elka.rso.manage.events.Event;
 import pl.edu.pw.elka.rso.manage.events.EventType;
 import pl.edu.pw.elka.rso.manage.events.Handler;
@@ -11,9 +13,9 @@ import pl.edu.pw.elka.rso.manage.node.Node;
 import pl.edu.pw.elka.rso.manage.node.NodeRegister;
 import pl.edu.pw.elka.rso.manage.node.NodeType;
 import pl.edu.pw.elka.rso.manage.screen.NodeScreen;
-import pl.edu.pw.elka.rso.manage.util.Config;
-import pl.edu.pw.elka.rso.manage.util.LongIO;
-import pl.edu.pw.elka.rso.manage.util.LongIOException;
+import pl.edu.pw.elka.rso.util.Config;
+import pl.edu.pw.elka.rso.util.LongIO;
+import pl.edu.pw.elka.rso.util.LongIOException;
 import pl.edu.pw.elka.rso.ssl.SSocketFactory;
 
 import javax.xml.bind.JAXBException;
@@ -61,6 +63,9 @@ public abstract class ClientListener implements Runnable {
     // for event handling
     // bind event with handler and it should work out of the box
     protected Map<EventType, Handler> handlers = new HashMap<>();
+
+
+    static final Logger LOGGER = LoggerFactory.getLogger(ClientListener.class);
 
 
     public ClientListener(String idFilePath, NodeType nodeType) {
@@ -258,7 +263,7 @@ public abstract class ClientListener implements Runnable {
             }
 
         } catch (IOException | ClassNotFoundException e) {
-            e.printStackTrace();
+            LOGGER.error("lost conection with dir node master", e);
         } finally {
             setConnected(false);
 
@@ -272,7 +277,7 @@ public abstract class ClientListener implements Runnable {
                     socket.close();
                 }
             } catch (IOException e) {
-                e.printStackTrace();
+                LOGGER.error("cannot close connection", e);
             }
         }
 

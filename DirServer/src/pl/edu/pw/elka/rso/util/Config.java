@@ -1,4 +1,4 @@
-package pl.edu.pw.elka.rso.manage.util;
+package pl.edu.pw.elka.rso.util;
 
 
 import javax.xml.bind.JAXBException;
@@ -9,8 +9,15 @@ import java.util.ArrayList;
 @XmlRootElement
 public class Config {
 
+    public String dbTestPath;
+
+    public String dbProdPath;
+
+    public String backupDbProdPath; // db for redundant server
+
     // only objects  annotated with XmlRootElement can be serialized
     public ArrayList<DirectoryServerConf> directoryServerList = new ArrayList<>();
+
 
 
     // static fields, not serialized

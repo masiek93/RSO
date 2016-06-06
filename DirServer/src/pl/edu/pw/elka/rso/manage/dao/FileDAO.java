@@ -1,6 +1,6 @@
 package pl.edu.pw.elka.rso.manage.dao;
 
-import pl.edu.pw.elka.rso.manage.domain.FileDTO;
+import pl.edu.pw.elka.rso.repo.domain.FileDTO;
 import pl.edu.pw.elka.rso.manage.node.NodeRegister;
 
 import java.util.ArrayList;

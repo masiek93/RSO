@@ -1,10 +1,13 @@
 package pl.edu.pw.elka.rso.manage.node;
 
 
-import pl.edu.pw.elka.rso.manage.util.DirectoryServerConf;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import pl.edu.pw.elka.rso.util.DirectoryServerConf;
 
 import java.io.Serializable;
 import java.util.Collection;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
@@ -22,6 +25,8 @@ public class NodeRegister implements Serializable {
 
     private static Long tempId = 0l;
 
+
+    Logger LOGGER = LoggerFactory.getLogger(NodeRegister.class);
     /**
      * temporary id, in case when there is no id *
      */
@@ -51,6 +56,7 @@ public class NodeRegister implements Serializable {
         } else {
             nodes.put(node.getId(), node);
         }
+
     }
 
     public synchronized void deregisterNode(Long id) {
@@ -101,19 +107,29 @@ public class NodeRegister implements Serializable {
         }
     }
 
-    public Collection<Node> getAliveDirectoryNodes() {
+    public List<Node> getAliveDirectoryNodes() {
         return getAliveNodes().stream().filter(n -> n.isDirectoryServer() && n.isAlive()).collect(Collectors.toList());
     }
 
-    public Collection<Node> getDirectoryNodes() {
+    public List<Node> getDirectoryNodes() {
         return getNodes().stream().filter(Node::isDirectoryServer).collect(Collectors.toList());
     }
 
-    public Collection<Node> getAliveFileNodes() {
+    public List<Node> getAliveFileNodes() {
         return getAliveNodes().stream().filter(n -> n.isAlive() && !n.isDirectoryServer()).collect(Collectors.toList());
     }
 
-    public Collection<Node> getFileNodes() {
+    public List<Node> getFileNodes() {
         return getNodes().stream().filter(n -> !n.isDirectoryServer()).collect(Collectors.toList());
+    }
+
+    // check whether node with given id is alive
+    public  boolean isAlive(Long id) {
+        Node n = nodes.get(id);
+        return n != null && n.isAlive();
+    }
+
+    public void setNodeSize(long nodeId, long size) {
+        nodes.get(nodeId).setSize(size);
     }
 }

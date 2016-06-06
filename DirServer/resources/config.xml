@@ -14,4 +14,11 @@
         <clientConnectionPort>23</clientConnectionPort>
         <synchronizationPort>4</synchronizationPort>
     </directoryServerList>
+
+    <dbTestPath>resources/db/test</dbTestPath>
+    <dbProdPath>resources/db/prod</dbProdPath>
+
+    <!-- TODO: for deployment change backupProd to prod -->
+    <backupDbProdPath>resources/db/backupProd</backupDbProdPath>
+
 </config>

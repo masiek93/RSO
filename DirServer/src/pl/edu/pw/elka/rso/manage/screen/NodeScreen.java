@@ -10,8 +10,10 @@ import java.util.List;
  * DirNode and FileNode need to extends this class on their own.
  */
 public abstract class NodeScreen implements Runnable {
+
     private final long screenStarted = System.currentTimeMillis();
     private static final int SCREEN_REFRESH_INTERVAL = 1000; // ms
+
     private static final int MAX_LOG_ENTRIES = 10;
     protected static final String DASHED_LINE_THIN = "12345678".replaceAll("\\d", "----------");
     protected static final String DASHED_LINE_THICK = "12345678".replaceAll("\\d", "==========");
@@ -22,6 +24,8 @@ public abstract class NodeScreen implements Runnable {
     private List<String> logEntries = new LinkedList<>();
     private int currentLogEntryNumber = 0;
     private final StringBuilder buffer = new StringBuilder();
+
+    private boolean silent = false;
 
     protected NodeScreen() {
         this.isWindowsOS = System.getProperty("os.name").contains("Windows");
@@ -38,19 +42,23 @@ public abstract class NodeScreen implements Runnable {
         try {
             //noinspection InfiniteLoopStatement
             while (true) {
-                clearScreen();
 
-                print(DASHED_LINE_THICK);
-                printNodeTime();
-                print(DASHED_LINE_THICK);
+                if(!silent) {
+                    clearScreen();
 
-                printAllInfo();
+                    print(DASHED_LINE_THICK);
+                    printNodeTime();
+                    print(DASHED_LINE_THICK);
 
-                print(DASHED_LINE_THICK);
-                printLog();
-                print(DASHED_LINE_THICK);
+                    printAllInfo();
 
-                flushToScreen();
+                    print(DASHED_LINE_THICK);
+                    printLog();
+                    print(DASHED_LINE_THICK);
+
+                    flushToScreen();
+                }
+
                 Thread.sleep(SCREEN_REFRESH_INTERVAL);
             }
         } catch (Throwable t) {
@@ -114,4 +122,19 @@ public abstract class NodeScreen implements Runnable {
     public static void addLogEntry(Object o) {
         addLogEntry(String.valueOf(o));
     }
+
+    public static void setSilent(boolean silent) {
+        if(instance != null) {
+            instance.silent = silent;
+        }
+
+    }
+
+    public static boolean isSilent() {
+        if(instance != null) {
+            return instance.silent;
+        }
+        return false;
+    }
+
 }

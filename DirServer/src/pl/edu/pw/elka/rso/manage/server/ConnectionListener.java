@@ -4,8 +4,8 @@ import pl.edu.pw.elka.rso.manage.node.Node;
 import pl.edu.pw.elka.rso.manage.node.NodeRegister;
 import pl.edu.pw.elka.rso.manage.node.NodeType;
 import pl.edu.pw.elka.rso.manage.screen.NodeScreen;
-import pl.edu.pw.elka.rso.manage.util.LongIO;
-import pl.edu.pw.elka.rso.manage.util.LongIOException;
+import pl.edu.pw.elka.rso.util.LongIO;
+import pl.edu.pw.elka.rso.util.LongIOException;
 import pl.edu.pw.elka.rso.ssl.SServerSocketFactory;
 
 import java.io.IOException;
@@ -55,6 +55,7 @@ public class ConnectionListener implements Runnable {
         thisNode.setId(id);
         thisNode.setNodeType(NodeType.DIRECTORY_NODE);
         thisNode.setPort(port);
+        thisNode.setAlive(true);
         NodeRegister.getInstance().registerNode(thisNode);
     }
 

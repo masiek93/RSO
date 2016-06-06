@@ -1,6 +1,8 @@
 package pl.edu.pw.elka.rso.manage.events;
 
-import pl.edu.pw.elka.rso.manage.server.ConnectionHandler;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 
 import java.util.*;
 import java.util.concurrent.BlockingQueue;
@@ -39,6 +41,8 @@ public class EventBus implements Runnable {
     private Map<EventType, Set<EventListener>> listenersMap = new ConcurrentHashMap<>();
 
 
+    Logger LOGGER = LoggerFactory.getLogger(EventBus.class);
+
 
     public static EventBus getInstance() {
         if(eventBroadcaster == null) {
@@ -54,7 +58,10 @@ public class EventBus implements Runnable {
             listenersMap.put(eventType, new HashSet<>());
         }
 
-        new Thread(this).start();
+        LOGGER.info("started");
+        Thread t = new Thread(this);
+        t.setDaemon(true);
+        t.start();
     }
 
 
@@ -74,6 +81,7 @@ public class EventBus implements Runnable {
 
     /** publish event **/
     public void publish(Event event) {
+
         eventsQueue.add(event);
     }
 
@@ -84,7 +92,7 @@ public class EventBus implements Runnable {
             try {
                 Event event = eventsQueue.take();
 
-
+                LOGGER.info("handling {} dstId = {}", event.getType(), event.getDstId());
 
                 for(EventListener eventListener: listenersMap.get(event.getType())) {
 
@@ -92,8 +100,10 @@ public class EventBus implements Runnable {
                     if(!event.getSourceId().equals(eventListener.getId())) { // dont send to its source
 
                         if(event.isBroadCastEvent()) {
+                            LOGGER.info("broadcasting  {}", event.getType());
                             eventListener.notify(event);
                         } else if (event.getDstId().equals(eventListener.getId())){
+                            LOGGER.info("sending  {} to {}", event.getType(), eventListener);
                             eventListener.notify(event);
                         }
 
@@ -101,10 +111,10 @@ public class EventBus implements Runnable {
 
                 }
             } catch (InterruptedException e) {
-                e.printStackTrace();
+               LOGGER.error("unexpected error ", e);
             }
-
         }
+
     }
 
 
@@ -115,6 +125,7 @@ public class EventBus implements Runnable {
     }
 
     private void unsubscribeFromEvent(EventListener eventListener, EventType eventType) {
+
         listenersMap.get(eventType).remove(eventListener);
     }
 

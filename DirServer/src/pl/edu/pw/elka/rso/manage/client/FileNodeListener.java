@@ -1,6 +1,8 @@
 package pl.edu.pw.elka.rso.manage.client;
 
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import pl.edu.pw.elka.rso.manage.node.Node;
 import pl.edu.pw.elka.rso.manage.node.NodeType;
 import pl.edu.pw.elka.rso.manage.screen.NodeScreen;
@@ -11,8 +13,14 @@ public class FileNodeListener extends ClientListener {
 
     public static final Long RETRY_PERIOD_MS = 1000l;
 
+
+
     public FileNodeListener(String idFilePath) {
         super(idFilePath, NodeType.FILE_NODE);
+
+        // tutaj serwer plikow powinnien wstawic jaki ma rozmiar
+        thisNode.setSize(1000);
+
     }
 
 
@@ -31,7 +39,7 @@ public class FileNodeListener extends ClientListener {
                     Thread.sleep(RETRY_PERIOD_MS);
                     NodeScreen.addLogEntry("waiting for any dir node server");
                 } catch (InterruptedException e1) {
-                    e1.printStackTrace();
+
                 }
             }
 

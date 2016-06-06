@@ -1,4 +1,4 @@
-package pl.edu.pw.elka.rso.manage.util;
+package pl.edu.pw.elka.rso.util;
 
 
 import javax.xml.bind.JAXBContext;

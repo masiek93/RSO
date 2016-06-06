@@ -1,4 +1,4 @@
-package pl.edu.pw.elka.rso.manage.test;
+package pl.edu.pw.elka.rso.test;
 
 
 import pl.edu.pw.elka.rso.manage.client.ClientListener;
@@ -16,13 +16,13 @@ public class FileNodeTest {
         FileNodeScreen.start(new FileNodeScreenDataProvider(cli));
         cli.start();
 
+        runForEver(cli);
+
+    }
+
+    private static void runForEver(ClientListener cli) throws InterruptedException {
         while(cli.isTrying()) {
             while(cli.isConnected()) {
-//                NodeRegister nodeRegister = NodeRegister.getInstance();
-//                if (nodeRegister != null) {
-//                    System.out.println("servers: ");
-//                    nodeRegister.getNodes().forEach(System.out::println);
-//                }
                 Thread.sleep(2000 * 5);
             }
             Thread.sleep(200);

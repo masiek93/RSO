@@ -1,6 +1,6 @@
 package pl.edu.pw.elka.rso.manage.screen;
 
-import pl.edu.pw.elka.rso.manage.domain.FileDTO;
+import pl.edu.pw.elka.rso.repo.domain.FileDTO;
 import pl.edu.pw.elka.rso.manage.node.Node;
 
 import java.util.Optional;
