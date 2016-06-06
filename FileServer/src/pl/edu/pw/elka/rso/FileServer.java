@@ -20,6 +20,8 @@ import java.security.NoSuchAlgorithmException;
 import javax.xml.bind.JAXBException;
 
 import pl.edu.pw.elka.rso.manage.util.Config;
+import pl.edu.pw.elka.rso.ssl.SServerSocketFactory;
+import pl.edu.pw.elka.rso.ssl.SSocketFactory;
 //import org.apache.commons.codec.binary.Hex;
 
 public class FileServer {
@@ -33,6 +35,7 @@ public class FileServer {
 	
 	void communicator(ServerSocket servsock,ServerSocket fileServsock,Socket socketToDirectoryServer, String fileStoragePath){
 		   Object object=null;
+		   boolean insecureMode;
 		   ObjectInputStream ois=null;
 		   ObjectOutputStream oos=null;
 		   ObjectInputStream ois2=null;
@@ -180,10 +183,11 @@ public class FileServer {
 		do{
 			try{
 				try{
-					socket = new Socket(directoryServerAddress, directoryServerPort);
+					socket = SSocketFactory.createSocket(directoryServerAddress, directoryServerPort);//new Socket(directoryServerAddress, directoryServerPort);
+					
 				}catch (Exception e){
 					   e.printStackTrace();
-					   socket = new Socket(RedundantDirectoryServerAddress, RedundantDirectoryServerPort);
+					   socket = SSocketFactory.createSocket(RedundantDirectoryServerAddress, RedundantDirectoryServerPort);//new Socket(RedundantDirectoryServerAddress, RedundantDirectoryServerPort);
 				}
 			}catch (Exception e){
 				   e.printStackTrace();
@@ -224,11 +228,11 @@ public class FileServer {
 			rm.setFile_socket_port(FILE_SOCKET_PORT);
 			oos.writeObject(rm);
 			serverID = (Integer) ois.readObject();
-			//wysłać ilość wolnego miejsca
+			//wysłac ilość wolnego miejsca
 			File file =new File(fileStoragePath);
 	   		Long free_space=file.getUsableSpace();
 	   		oos.writeObject(free_space);
-	   		//wysłać listę plików
+	   		//wysłac listę plików
 	   		File folder = new File(fileStoragePath);
 	   		String[] listOfFiles=folder.list();
 	   		oos.writeObject(listOfFiles);
@@ -236,7 +240,7 @@ public class FileServer {
 			   e.printStackTrace();
 		}	
 	}
-	
+		
 	public static void main(String[] args) {
 		String fileStoragePath="storage";
 		FileServer fs= new FileServer();
@@ -253,12 +257,11 @@ public class FileServer {
 		ServerSocket fileServsock = null;
 		Socket socketToDirectoryServer = fs.getDirectoryServerSocket();
 		try{
-			servsock = new ServerSocket(SOCKET_PORT);
-			fileServsock = new ServerSocket(FILE_SOCKET_PORT);
+			servsock =  SServerSocketFactory.createServerSocket(SOCKET_PORT);// new ServerSocket(SOCKET_PORT);
+			fileServsock = SServerSocketFactory.createServerSocket(FILE_SOCKET_PORT);// new ServerSocket(FILE_SOCKET_PORT);
 		}catch (Exception e){
 			   e.printStackTrace();
 		}
-		
 		while(true){
 			fs.communicator(servsock,fileServsock,socketToDirectoryServer,fileStoragePath);
 		}
