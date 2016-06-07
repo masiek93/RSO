@@ -1,6 +1,6 @@
 package pl.edu.pw.elka.rso;
 
-import pl.edu.pw.elka.rso.manage.util.Config;
+import pl.edu.pw.elka.rso.config.Config;
 import pl.edu.pw.elka.rso.message.MessageInputStream;
 import pl.edu.pw.elka.rso.message.MessageOutputStream;
 import pl.edu.pw.elka.rso.message.Messages;

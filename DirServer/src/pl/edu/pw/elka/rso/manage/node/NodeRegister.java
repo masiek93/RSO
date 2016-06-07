@@ -3,7 +3,7 @@ package pl.edu.pw.elka.rso.manage.node;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import pl.edu.pw.elka.rso.util.DirectoryServerConf;
+import pl.edu.pw.elka.rso.config.DirectoryServerConf;
 
 import java.io.Serializable;
 import java.util.Collection;

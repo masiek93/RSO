@@ -1,12 +1,12 @@
 package pl.edu.pw.elka.rso.manage.client;
 
+import pl.edu.pw.elka.rso.config.Config;
 import pl.edu.pw.elka.rso.manage.events.Event;
 import pl.edu.pw.elka.rso.manage.events.EventType;
 import pl.edu.pw.elka.rso.manage.events.Handler;
 import pl.edu.pw.elka.rso.manage.node.Node;
 import pl.edu.pw.elka.rso.manage.node.NodeType;
 import pl.edu.pw.elka.rso.manage.screen.NodeScreen;
-import pl.edu.pw.elka.rso.util.Config;
 import pl.edu.pw.elka.rso.repo.db.DbContainer;
 import pl.edu.pw.elka.rso.repo.db.DBFacade;
 import pl.edu.pw.elka.rso.ssl.SSocketFactory;

@@ -3,6 +3,7 @@ package pl.edu.pw.elka.rso.manage.client;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import pl.edu.pw.elka.rso.config.Config;
 import pl.edu.pw.elka.rso.manage.events.Event;
 import pl.edu.pw.elka.rso.manage.events.EventType;
 import pl.edu.pw.elka.rso.manage.events.Handler;
@@ -13,7 +14,6 @@ import pl.edu.pw.elka.rso.manage.node.NodeType;
 import pl.edu.pw.elka.rso.manage.screen.NodeScreen;
 import pl.edu.pw.elka.rso.message.*;
 import pl.edu.pw.elka.rso.ssl.SSocketFactory;
-import pl.edu.pw.elka.rso.util.Config;
 import pl.edu.pw.elka.rso.util.LongIO;
 import pl.edu.pw.elka.rso.util.LongIOException;
 

@@ -1,4 +1,4 @@
-package pl.edu.pw.elka.rso.util;
+package pl.edu.pw.elka.rso.config;
 
 
 public class DirectoryServerConf {

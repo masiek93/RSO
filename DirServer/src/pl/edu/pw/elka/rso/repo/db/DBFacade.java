@@ -11,7 +11,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.sqlite.SQLiteConfig;
 import pl.edu.pw.elka.rso.manage.node.Node;
-import pl.edu.pw.elka.rso.util.Config;
+import pl.edu.pw.elka.rso.config.Config;
 import pl.edu.pw.elka.rso.repo.domain.FileDTO;
 
 import javax.xml.bind.JAXBException;

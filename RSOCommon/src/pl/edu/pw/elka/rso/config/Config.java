@@ -1,4 +1,4 @@
-package pl.edu.pw.elka.rso.manage.util;
+package pl.edu.pw.elka.rso.config;
 
 
 import javax.xml.bind.JAXBException;
@@ -9,13 +9,20 @@ import java.util.ArrayList;
 @XmlRootElement
 public class Config {
 
+    public String dbTestPath;
+
+    public String dbProdPath;
+
+    public String backupDbProdPath; // db for redundant server
+
     // only objects  annotated with XmlRootElement can be serialized
     public ArrayList<DirectoryServerConf> directoryServerList = new ArrayList<>();
 
 
+
     // static fields, not serialized
     private static Config config;
-    private final static String configFile = "resources/config.xml";
+    private static String configFile = "resources/config.xml";
 
 
     public void Config() {
@@ -28,6 +35,21 @@ public class Config {
         }
         return config;
     }
+
+
+    public void updateFile() throws IOException, JAXBException {
+        ConfigIO.getInstance().write(configFile, this);
+    }
+
+    public static Config load(String configFile) throws IOException, JAXBException {
+        return ConfigIO.getInstance().read(configFile);
+    }
+
+
+    public static Config load() throws IOException, JAXBException {
+        return ConfigIO.getInstance().read(configFile);
+    }
+
 
     public boolean addDirectorySever(DirectoryServerConf directoryServerConf) {
         return directoryServerList.add(directoryServerConf);
