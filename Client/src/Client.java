@@ -19,9 +19,28 @@ public class Client {
 
 	public static void main(String[] args) {
 		int portNumber = 60010;
+		String choice = null;
+		String fileName = null;
+		
 		if (args.length > 0) {
 			if (args[0] != null) {
 				portNumber = Integer.parseInt(args[0]);
+			}
+			// tutaj trzeba ustalic jak podawane sa parametry
+			if (args[1] !=null){
+				choice = args[1];
+				
+				if (choice.equalsIgnoreCase("filelist")){
+					
+				}else if(choice.equalsIgnoreCase("addfile")){
+					fileName = args[3];
+					//TODO: implementation
+				}else if(choice.equalsIgnoreCase("removefile")){
+					fileName = args[3];
+					//TODO: implementation
+				}else if(choice.equalsIgnoreCase("connect")){
+					//TODO: implementation
+				}
 			}
 		}
 
