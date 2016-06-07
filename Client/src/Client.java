@@ -1,4 +1,13 @@
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.net.Socket;
+import java.net.SocketException;
+import java.net.UnknownHostException;
+
+import Requests.ConnectAccept;
+import Requests.ConnectRequest;
+import Requests.FileListRequest;
 
 /**
  * Symulowanie prostego klienta
@@ -16,35 +25,104 @@ public class Client {
 
 	static final String MENU = "M E N U\n" + "1 - wyswietl liste plikow i folderów\n" + "2 - dodaj plik\n"
 			+ "3 - usun plik\n" + "4 - po³¹cz z serwerem\n" + "0 - zakoñcz program\n";
-
+	
 	public static void main(String[] args) {
-		int portNumber = 60010;
+		Client client = new Client();
+		int portNumber1 = 4321; // For Catalog Server 1
+		int portNumber2 = 23; // For Catalog Server 2
 		String choice = null;
 		String fileName = null;
+		GetFileList gfl = null;
+		AddFile af = null;
+		ConnectToServer cts = null;
+		DeleteFile df = null;
+		
+		/* Trzeba ustalic w jakiej kolejnosci podawane sa parametry
+		 * teraz zak³adam ¿e: 
+		 * args[0] - komenda np. addfile
+		 * args[1] - nazwa pliku
+		 */
 		
 		if (args.length > 0) {
-			if (args[0] != null) {
-				portNumber = Integer.parseInt(args[0]);
+			/*if (args[0] != null) {
+				portNumber1 = Integer.parseInt(args[0]);
 			}
-			// tutaj trzeba ustalic jak podawane sa parametry
-			if (args[1] !=null){
-				choice = args[1];
-				
+			*/
+			if (args[0] !=null){
+				choice = args[0];
 				if (choice.equalsIgnoreCase("filelist")){
+					// próba po³¹czenia siê z pierwszym serwerem katalogowym
+					cts = new ConnectToServer(portNumber1);
+					socket = cts.connect();
+					isConnected = cts.isConnected();
+					if(isConnected){
+						gfl = new GetFileList(socket);
+						gfl.getList();
+					}else{
+						// Je¿eli nie udalo sie polaczyc z pierwszym SK to próbujemy polaczyc siê z drugim
+						cts.setPortNumber(portNumber2);
+						socket = cts.connect();
+						isConnected = cts.isConnected();
+						if(isConnected){
+							gfl = new GetFileList(socket);
+							gfl.getList();
+						}else{
+							System.out.println("Client debug: Nie uda³o siê po³¹czyæ z ¿adnym z serwerów katalogowych");
+						}
+					}
+					
 					
 				}else if(choice.equalsIgnoreCase("addfile")){
-					fileName = args[3];
-					//TODO: implementation
-				}else if(choice.equalsIgnoreCase("removefile")){
-					fileName = args[3];
-					//TODO: implementation
-				}else if(choice.equalsIgnoreCase("connect")){
-					//TODO: implementation
+					if (args[1] !=null){
+						fileName = args[1];
+						// próba po³¹czenia siê z pierwszym serwerem katalogowym
+						cts = new ConnectToServer(portNumber1);
+						socket = cts.connect();
+						isConnected = cts.isConnected();
+						if(isConnected){
+							af = new AddFile(socket);
+						}else{
+							// Je¿eli nie udalo sie polaczyc z pierwszym SK to próbujemy polaczyc siê z drugim
+							cts.setPortNumber(portNumber2);
+							socket = cts.connect();
+							isConnected = cts.isConnected();
+							if(isConnected){
+								af = new AddFile(socket);
+							}else{
+								System.out.println("Client debug: Nie uda³o siê po³¹czyæ z ¿adnym z serwerów katalogowych");
+							}
+						}
+						
+								
+					}
+					else System.out.println("Gdy u¿ywasz komendy addfile musisz podaæ jako trzeci parametr nazwe pliku.");	
+				}else if(choice.equalsIgnoreCase("deletefile")){
+					if (args[1] !=null){
+						fileName = args[1];
+						// próba po³¹czenia siê z pierwszym serwerem katalogowym
+						cts = new ConnectToServer(portNumber1);
+						socket = cts.connect();
+						isConnected = cts.isConnected();
+						if(isConnected){
+							df = new DeleteFile(socket);
+						}else{
+							// Je¿eli nie udalo sie polaczyc z pierwszym SK to próbujemy polaczyc siê z drugim
+							cts.setPortNumber(portNumber2);
+							socket = cts.connect();
+							isConnected = cts.isConnected();
+							if(isConnected){
+								df = new DeleteFile(socket);
+							}else{
+								System.out.println("Client debug: Nie uda³o siê po³¹czyæ z ¿adnym z serwerów katalogowych");
+							}
+						}
+					}
+					else System.out.println("Gdy u¿ywasz komendy deletefile musisz podaæ jako trzeci parametr nazwe pliku.");	
 				}
 			}
 		}
 
-		enter = new EnterData("CON");
+		/*enter = new EnterData("CON");
 		int choice;
 
 		while (true) {
@@ -76,7 +154,7 @@ public class Client {
 				System.out.println("Podaj prawid³owy numer!");
 				break;
 			}
-		}
+		}*/
 	}
 
 }
