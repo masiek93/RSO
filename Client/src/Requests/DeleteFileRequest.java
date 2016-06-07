@@ -16,21 +16,11 @@ public class DeleteFileRequest implements Serializable{
 
 	private static final String DELETE_FILE = "delete_file";
 	
-	private int portNumber;
-	
 	private String fileName;
 	
 	public String getMessage()
 	{
 		return DELETE_FILE;
-	}
-
-	public int getPortNumber() {
-		return portNumber;
-	}
-
-	public void setPortNumber(int portNumber) {
-		this.portNumber = portNumber;
 	}
 
 	public String getFileName() {
