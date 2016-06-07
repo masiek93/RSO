@@ -1,4 +1,4 @@
-package pl.edu.pw.elka.rso.manage.messages;
+package pl.edu.pw.elka.rso.message;
 
 import java.io.Serializable;
 
@@ -8,7 +8,7 @@ public class Message implements Serializable {
     private Object data; // must be serializable
     private Code code;
 
-    public Message( Type type, Object data, Code code) {
+    public Message(Type type, Object data, Code code) {
         this.code = code;
         this.data = data;
         this.type = type;

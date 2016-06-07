@@ -1,4 +1,4 @@
-package pl.edu.pw.elka.rso.manage.messages;
+package pl.edu.pw.elka.rso.message;
 
 
 public enum Code {

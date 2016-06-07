@@ -6,22 +6,19 @@ import org.slf4j.LoggerFactory;
 import pl.edu.pw.elka.rso.manage.events.Event;
 import pl.edu.pw.elka.rso.manage.events.EventType;
 import pl.edu.pw.elka.rso.manage.events.Handler;
-import pl.edu.pw.elka.rso.manage.messages.Code;
-import pl.edu.pw.elka.rso.manage.messages.Message;
-import pl.edu.pw.elka.rso.manage.messages.Messages;
+import pl.edu.pw.elka.rso.manage.messages.DirSrvMessages;
 import pl.edu.pw.elka.rso.manage.node.Node;
 import pl.edu.pw.elka.rso.manage.node.NodeRegister;
 import pl.edu.pw.elka.rso.manage.node.NodeType;
 import pl.edu.pw.elka.rso.manage.screen.NodeScreen;
+import pl.edu.pw.elka.rso.message.*;
+import pl.edu.pw.elka.rso.ssl.SSocketFactory;
 import pl.edu.pw.elka.rso.util.Config;
 import pl.edu.pw.elka.rso.util.LongIO;
 import pl.edu.pw.elka.rso.util.LongIOException;
-import pl.edu.pw.elka.rso.ssl.SSocketFactory;
 
 import javax.xml.bind.JAXBException;
 import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
 import java.net.Socket;
 import java.util.HashMap;
 import java.util.Map;
@@ -29,9 +26,9 @@ import java.util.Map;
 /**
  * A client listener is an object reponsible for maintaining the communication
  * with a node server (node directory server).
- *
+ * <p>
  * The client listener can be in several states: trying to connect (trying = true, connected = false),
- *  connected (trying = true, connected = true), not trying (trying = false, connected = false).
+ * connected (trying = true, connected = true), not trying (trying = false, connected = false).
  */
 public abstract class ClientListener implements Runnable {
 
@@ -42,8 +39,8 @@ public abstract class ClientListener implements Runnable {
 
     // for sending information
     protected Socket socket;
-    protected ObjectOutputStream oStr;
-    protected ObjectInputStream iStr;
+    protected MessageOutputStream oStr;
+    protected MessageInputStream iStr;
 
     // information about connected parties
     protected Node thisNode = new Node(); // data describing this thisNode
@@ -105,7 +102,7 @@ public abstract class ClientListener implements Runnable {
         handlers.put(EventType.NODE_CONNECTED_EVENT, new Handler() {
             @Override
             public void handleEvent(Event event) {
-                Node node = (Node)event.getData();
+                Node node = (Node) event.getData();
                 nodeRegister.registerNode(node);
             }
         });
@@ -113,7 +110,7 @@ public abstract class ClientListener implements Runnable {
         handlers.put(EventType.NODE_DISCONNECTED_EVENT, new Handler() {
             @Override
             public void handleEvent(Event event) {
-                Node node = (Node)event.getData();
+                Node node = (Node) event.getData();
                 nodeRegister.deregisterNode(node.getId());
             }
         });
@@ -169,6 +166,7 @@ public abstract class ClientListener implements Runnable {
 
     /**
      * initial step of the protocol - exchange informations between node manager and this node.
+     *
      * @throws IOException
      * @throws ClassNotFoundException
      */
@@ -184,6 +182,7 @@ public abstract class ClientListener implements Runnable {
 
     /**
      * request id, send information such as type of server etc.
+     *
      * @throws IOException
      * @throws ClassNotFoundException
      */
@@ -191,17 +190,17 @@ public abstract class ClientListener implements Runnable {
 
         // send id
 
-        if(getId() == null) {
-            oStr.writeObject(Messages.requestIdMsg());
-            Message msg = (Message) iStr.readObject();
+        if (getId() == null) {
+            oStr.writeMessage(Messages.srvRegReqMsg(getThisNode().getPort()));
+            Message msg = iStr.readMessage();
             setId((Long) msg.getData());
             idChanged = true;
 
         } else {
             // show id to the server for confirmation.
-            oStr.writeObject(Messages.showIdMsg(getId()));
-            Message msg = (Message) iStr.readObject();
-            if(msg.getCode() == Code.YES) {
+            oStr.writeMessage(Messages.showIdMsg(getId()));
+            Message msg = iStr.readMessage();
+            if (msg.getCode() == Code.YES) {
                 idChanged = false;
             } else {
                 // server didnt accept the message. retry.
@@ -211,13 +210,13 @@ public abstract class ClientListener implements Runnable {
         }
 
         // send information about this node
-        oStr.writeObject(Messages.nodeInfo(thisNode));
+        oStr.writeMessage(DirSrvMessages.nodeInfo(thisNode));
 
         // signal to the server that this thisNode is ready
-        oStr.writeObject(Messages.readyMsg());
+        oStr.writeMessage(Messages.readyMsg());
 
         // write id to file if it has changed
-        if(idChanged) {
+        if (idChanged) {
             try {
                 LongIO.writeLong(idFilePath, getId());
             } catch (LongIOException e) {
@@ -229,19 +228,17 @@ public abstract class ClientListener implements Runnable {
     }
 
     private void serverInit() throws IOException, ClassNotFoundException {
-        Message msg = (Message) iStr.readObject();
+        Message msg = iStr.readMessage();
         nodeRegister.update((NodeRegister) msg.getData());
     }
 
 
-
-
     public void runner() {
 
-        try{
+        try {
 
-            iStr = new ObjectInputStream(socket.getInputStream());
-            oStr = new ObjectOutputStream(socket.getOutputStream());
+            iStr = new MessageInputStream(socket.getInputStream());
+            oStr = new MessageOutputStream(socket.getOutputStream());
 
 
             setConnected(true);
@@ -250,11 +247,11 @@ public abstract class ClientListener implements Runnable {
 
             // from now on, the server is responsible for different stuff
 
-            while(isConnected()) {
-                Message msg = (Message) iStr.readObject();
+            while (isConnected()) {
+                Message msg = iStr.readMessage();
                 switch (msg.getType()) {
                     case PING:
-                        oStr.writeObject(Messages.pongMsg());
+                        oStr.writeMessage(Messages.pongMsg());
                         break;
                     case EVENT:
                         handleEvent((Event) msg.getData());
@@ -268,12 +265,12 @@ public abstract class ClientListener implements Runnable {
             setConnected(false);
 
             // unregister the other node
-            if(otherNode != null && otherNode.getId() != null) {
+            if (otherNode != null && otherNode.getId() != null) {
                 nodeRegister.deregisterNode(otherNode.getId());
             }
 
             try {
-                if(!socket.isClosed()) {
+                if (!socket.isClosed()) {
                     socket.close();
                 }
             } catch (IOException e) {
@@ -285,7 +282,7 @@ public abstract class ClientListener implements Runnable {
 
 
     protected void pickServer() throws InterruptedException, IOException {
-        for(Node node: nodeRegister.getDirectoryNodes()) {
+        for (Node node : nodeRegister.getDirectoryNodes()) {
 
             // TODO: handle the case when client connects to its own server
             try {
@@ -301,20 +298,13 @@ public abstract class ClientListener implements Runnable {
     }
 
 
-
-
     private void handleEvent(Event data) {
         NodeScreen.addLogEntry("received new event " + data);
         Handler h = handlers.get(data.getType());
-        if(h != null) {
+        if (h != null) {
             h.handleEvent(data);
         }
     }
-
-
-
-
-
 
 
 }

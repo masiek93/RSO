@@ -11,7 +11,7 @@ public class ConfirmationMessage extends FileMessage {
 	private Type type;
 	private Status status;
 	private byte[] hash; //used by FILE_RECIVED
-	private int serverID;
+	private long serverID;
 
 	public Type getType() {
 		return type;
@@ -37,11 +37,11 @@ public class ConfirmationMessage extends FileMessage {
 		this.hash = hash;
 	}
 
-	public int getServerID() {
+	public long getServerID() {
 		return serverID;
 	}
 
-	public void setServerID(int serverID) {
+	public void setServerID(long serverID) {
 		this.serverID = serverID;
 	}
 

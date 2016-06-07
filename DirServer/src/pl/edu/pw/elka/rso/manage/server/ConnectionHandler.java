@@ -3,13 +3,14 @@ package pl.edu.pw.elka.rso.manage.server;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import pl.edu.pw.elka.rso.manage.events.*;
-import pl.edu.pw.elka.rso.manage.messages.Message;
-import pl.edu.pw.elka.rso.manage.messages.Messages;
-import pl.edu.pw.elka.rso.manage.messages.Type;
+import pl.edu.pw.elka.rso.manage.messages.DirSrvMessages;
 import pl.edu.pw.elka.rso.manage.node.Node;
 import pl.edu.pw.elka.rso.manage.node.NodeRegister;
 import pl.edu.pw.elka.rso.manage.node.NodeType;
 import pl.edu.pw.elka.rso.manage.screen.NodeScreen;
+import pl.edu.pw.elka.rso.message.Message;
+import pl.edu.pw.elka.rso.message.Messages;
+import pl.edu.pw.elka.rso.message.Type;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;
@@ -168,12 +169,12 @@ public class ConnectionHandler implements Runnable, EventListener {
 
     private void sendEvent(Event event) throws IOException {
 
-        oStr.writeObject(Messages.eventMessage(event));
+        oStr.writeObject(DirSrvMessages.eventMessage(event));
     }
 
 
     private void serverInit() throws IOException {
-        oStr.writeObject(Messages.nodeRegisterMsg(nodeRegister));
+        oStr.writeObject(DirSrvMessages.nodeRegisterMsg(nodeRegister));
     }
 
 
@@ -200,7 +201,7 @@ public class ConnectionHandler implements Runnable, EventListener {
         switch (msg.getType()) {
             case ID_REQ:
                 clientNode.setId(idMng.newId());
-                oStr.writeObject(Messages.responseIdMsg(clientNode.getId()));
+                oStr.writeObject(Messages.srvRegRespMsg(clientNode.getId()));
                 break;
             case ID_SHOW:
                 // client request id to be accepted by the server
