@@ -23,8 +23,8 @@ public class Client {
 
 	private static Socket socket;
 
-	static final String MENU = "M E N U\n" + "1 - wyswietl liste plikow i folderów\n" + "2 - dodaj plik\n"
-			+ "3 - usun plik\n" + "4 - po³¹cz z serwerem\n" + "0 - zakoñcz program\n";
+	static final String MENU = "M E N U\n" + "1 - wyswietl liste plikow i folderÃ³w\n" + "2 - dodaj plik\n"
+			+ "3 - usun plik\n" + "4 - poÅ‚Ä…cz z serwerem\n" + "0 - zakoÅ„cz program\n";
 	
 	public static void main(String[] args) {
 		Client client = new Client();
@@ -38,7 +38,7 @@ public class Client {
 		DeleteFile df = null;
 		
 		/* Trzeba ustalic w jakiej kolejnosci podawane sa parametry
-		 * teraz zak³adam ¿e: 
+		 * teraz zakÅ‚adam Å¼e: 
 		 * args[0] - komenda np. addfile
 		 * args[1] - nazwa pliku
 		 */
@@ -51,7 +51,7 @@ public class Client {
 			if (args[0] !=null){
 				choice = args[0];
 				if (choice.equalsIgnoreCase("filelist")){
-					// próba po³¹czenia siê z pierwszym serwerem katalogowym
+					// prÃ³ba poÅ‚Ä…czenia siÄ™ z pierwszym serwerem katalogowym
 					cts = new ConnectToServer(portNumber1);
 					socket = cts.connect();
 					isConnected = cts.isConnected();
@@ -59,7 +59,7 @@ public class Client {
 						gfl = new GetFileList(socket);
 						gfl.getList();
 					}else{
-						// Je¿eli nie udalo sie polaczyc z pierwszym SK to próbujemy polaczyc siê z drugim
+						// JeÅ¼eli nie udalo sie polaczyc z pierwszym SK to prÃ³bujemy polaczyc siÄ™ z drugim
 						cts.setPortNumber(portNumber2);
 						socket = cts.connect();
 						isConnected = cts.isConnected();
@@ -67,7 +67,7 @@ public class Client {
 							gfl = new GetFileList(socket);
 							gfl.getList();
 						}else{
-							System.out.println("Client debug: Nie uda³o siê po³¹czyæ z ¿adnym z serwerów katalogowych");
+							System.out.println("Client debug: Nie udaÅ‚o siÄ™ poÅ‚Ä…czyÄ‡ z Å¼adnym z serwerÃ³w katalogowych");
 						}
 					}
 					
@@ -75,49 +75,49 @@ public class Client {
 				}else if(choice.equalsIgnoreCase("addfile")){
 					if (args[1] !=null){
 						fileName = args[1];
-						// próba po³¹czenia siê z pierwszym serwerem katalogowym
+						// prÃ³ba poÅ‚Ä…czenia siÄ™ z pierwszym serwerem katalogowym
 						cts = new ConnectToServer(portNumber1);
 						socket = cts.connect();
 						isConnected = cts.isConnected();
 						if(isConnected){
 							af = new AddFile(socket);
 						}else{
-							// Je¿eli nie udalo sie polaczyc z pierwszym SK to próbujemy polaczyc siê z drugim
+							// JeÅ¼eli nie udalo sie polaczyc z pierwszym SK to prÃ³bujemy polaczyc siÄ™ z drugim
 							cts.setPortNumber(portNumber2);
 							socket = cts.connect();
 							isConnected = cts.isConnected();
 							if(isConnected){
 								af = new AddFile(socket);
 							}else{
-								System.out.println("Client debug: Nie uda³o siê po³¹czyæ z ¿adnym z serwerów katalogowych");
+								System.out.println("Client debug: Nie udaÅ‚o siÄ™ poÅ‚Ä…czyÄ‡ z Å¼adnym z serwerÃ³w katalogowych");
 							}
 						}
 						
 								
 					}
-					else System.out.println("Gdy u¿ywasz komendy addfile musisz podaæ jako trzeci parametr nazwe pliku.");	
+					else System.out.println("Gdy uÅ¼ywasz komendy addfile musisz podaÄ‡ jako trzeci parametr nazwe pliku.");	
 				}else if(choice.equalsIgnoreCase("deletefile")){
 					if (args[1] !=null){
 						fileName = args[1];
-						// próba po³¹czenia siê z pierwszym serwerem katalogowym
+						// prÃ³ba poÅ‚Ä…czenia siÄ™ z pierwszym serwerem katalogowym
 						cts = new ConnectToServer(portNumber1);
 						socket = cts.connect();
 						isConnected = cts.isConnected();
 						if(isConnected){
 							df = new DeleteFile(socket);
 						}else{
-							// Je¿eli nie udalo sie polaczyc z pierwszym SK to próbujemy polaczyc siê z drugim
+							// JeÅ¼eli nie udalo sie polaczyc z pierwszym SK to prÃ³bujemy polaczyc siÄ™ z drugim
 							cts.setPortNumber(portNumber2);
 							socket = cts.connect();
 							isConnected = cts.isConnected();
 							if(isConnected){
 								df = new DeleteFile(socket);
 							}else{
-								System.out.println("Client debug: Nie uda³o siê po³¹czyæ z ¿adnym z serwerów katalogowych");
+								System.out.println("Client debug: Nie udaÅ‚o siÄ™ poÅ‚Ä…czyÄ‡ z Å¼adnym z serwerÃ³w katalogowych");
 							}
 						}
 					}
-					else System.out.println("Gdy u¿ywasz komendy deletefile musisz podaæ jako trzeci parametr nazwe pliku.");	
+					else System.out.println("Gdy uÅ¼ywasz komendy deletefile musisz podaÄ‡ jako trzeci parametr nazwe pliku.");	
 				}
 			}
 		}
@@ -127,18 +127,18 @@ public class Client {
 
 		while (true) {
 			System.out.println(MENU);
-			choice = enter.enterInt("Podaj swój wybór: ");
+			choice = enter.enterInt("Podaj swÃ³j wybÃ³r: ");
 			switch (choice) {
 			case 1:
 				if (isConnected) {
 					GetFileList gfl = new GetFileList(socket);
 					gfl.getList();
 				} else
-					System.out.println("Najpierw po³¹cz siê z serwerem");
+					System.out.println("Najpierw poÅ‚Ä…cz siÄ™ z serwerem");
 				break;
 			case 2:
 				System.out.println(
-						"\nPodaj nazwê pliku, który chcesz wgraæ(pamiêtaj o padaniu ca³ej œcie¿ki np. root/folder1/folder2/plik.txt):\n");
+						"\nPodaj nazwÄ™ pliku, ktÃ³ry chcesz wgraÄ‡(pamiÄ™taj o padaniu caÅ‚ej Å›cieÅ¼ki np. root/folder1/folder2/plik.txt):\n");
 				break;
 			case 3:
 				System.out.println("\ncase 3\n");
@@ -151,7 +151,7 @@ public class Client {
 			case 0:
 				System.exit(0);
 			default:
-				System.out.println("Podaj prawid³owy numer!");
+				System.out.println("Podaj prawidÅ‚owy numer!");
 				break;
 			}
 		}*/

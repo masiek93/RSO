@@ -3,7 +3,7 @@ import java.io.Serializable;
 import java.util.List;
 
 /**
- * Wylistowanie plików w bazie - komunikacja z klientem
+ * Wylistowanie plikÃ³w w bazie - komunikacja z klientem
  * @author Mateusz
  *
  */

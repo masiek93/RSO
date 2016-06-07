@@ -3,7 +3,7 @@ package Requests;
 import java.io.Serializable;
 
 /**
- * Usuniêcie pliku - komunikacja z klientem
+ * UsuniÄ™cie pliku - komunikacja z klientem
  * @author Mateusz
  *
  */

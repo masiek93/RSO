@@ -1,5 +1,5 @@
 /* 
- *  Klasa umoøliwiajπca wczytywanie danych z klawiatury 
+ *  Klasa umo≈ºliwiajƒÖca wczytywanie danych z klawiatury 
 */
 
 
@@ -36,7 +36,7 @@ public class EnterData {
 	public void printErrorMessage(String message){
 		if (reader!=null){
 			System.out.println(message);
-			enterString("Naciúnij ENTER");
+			enterString("Naci≈õnij ENTER");
 		} else {
 			JOptionPane.showMessageDialog(null, message);
 		}
