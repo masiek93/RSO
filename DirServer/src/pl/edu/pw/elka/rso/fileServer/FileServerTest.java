@@ -1,4 +1,4 @@
-package pl.edu.pw.elka.rso;
+package pl.edu.pw.elka.rso.fileServer;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
@@ -19,6 +19,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Scanner;
 
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -71,7 +72,7 @@ public class FileServerTest {
 		    }
 		}
 		t.stop();
-		assertTrue(result instanceof Long);
+		Assert.assertTrue(result instanceof Long);
 	}
 	
 	
@@ -111,7 +112,7 @@ public class FileServerTest {
 		}
 		t.stop();
 		System.out.println(((String[])result)[1]);
-		assertEquals(null, "test_file.txt",  ((String[])result)[1]);
+		Assert.assertEquals(null, "test_file.txt",  ((String[])result)[1]);
 	}
 	
 	@Test
@@ -187,9 +188,9 @@ public class FileServerTest {
     		System.out.println("Scanner: "+e.toString());// TODO: handle exception
     	}
 		if (nxt_ln.toLowerCase().contains("Lorem ipsum dolor".toLowerCase())  ) 
-			assertTrue(true);
+			Assert.assertTrue(true);
 		else
-			assertTrue(false);
+			Assert.assertTrue(false);
 	}
 	
 	@Test
@@ -318,7 +319,7 @@ public class FileServerTest {
 		t.stop();
 		BigInteger bigInt1 = new BigInteger(1,FileServer.getDigest(recived_file));
 		BigInteger bigInt2 = new BigInteger(1,FileServer.getDigest("test_file.txt"));
-		assertEquals(bigInt1.toString(16), bigInt2.toString(16));
+		Assert.assertEquals(bigInt1.toString(16), bigInt2.toString(16));
 	}
 	
 	@Test

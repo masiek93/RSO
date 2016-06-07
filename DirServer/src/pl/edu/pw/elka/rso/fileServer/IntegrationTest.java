@@ -1,4 +1,4 @@
-package pl.edu.pw.elka.rso;
+package pl.edu.pw.elka.rso.fileServer;
 
 import static org.junit.Assert.*;
 

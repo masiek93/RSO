@@ -57,20 +57,11 @@ public class DirNodeTest {
             NodeScreen.addLogEntry("runnng a dir node server");
             conList.start();
 
-            startConsole();
-
-
-
-
         } catch (IOException | MetaDataRepositoryException | JAXBException e) {
             LOGGER.error("error", e);
         }
 
 
-    }
-
-    private static void startConsole() {
-        new ServerConsole().run();
     }
 
     private static void startSubServices() throws IOException, JAXBException, MetaDataRepositoryException {

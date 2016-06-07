@@ -1,6 +1,7 @@
-package pl.edu.pw.elka.rso;
+package pl.edu.pw.elka.rso.fileServer;
 
 import pl.edu.pw.elka.rso.config.Config;
+import pl.edu.pw.elka.rso.manage.client.FileNodeListener;
 import pl.edu.pw.elka.rso.message.MessageInputStream;
 import pl.edu.pw.elka.rso.message.MessageOutputStream;
 import pl.edu.pw.elka.rso.message.Messages;
@@ -92,7 +93,7 @@ public class FileServer {
 
                     fh.downloadFile(path, fileSocket, (int) (1.05 * ufm.getSizeInBytes()));
                     // send notification to directory server
-                    confirmationMessageToDirectoryServer(socketToDirectoryServer, Type.FILE_RECIVED, Status.SUCCESSFUL, ufm.getId(), getDigest(path), serverID);
+                  //  confirmationMessageToDirectoryServer(socketToDirectoryServer, Type.FILE_RECIVED, Status.SUCCESSFUL, ufm.getId(), getDigest(path), serverID);
                 }
                 if (object instanceof ForwardFileMessage) {
                     ForwardFileMessage ffm = (ForwardFileMessage) object;
@@ -174,6 +175,7 @@ public class FileServer {
         return digest;
     }
 
+    // nieuzywane
     Socket getDirectoryServerSocket() {
         Socket socket = null;
         do {
@@ -239,6 +241,9 @@ public class FileServer {
     public static void main(String[] args) {
         String fileStoragePath = "storage";
         FileServer fs = new FileServer();
+        FileNodeListener fileNodeListener = new FileNodeListener("fileNode1.txt", new File("storage").getUsableSpace());
+        fileNodeListener.start();
+
         try {
             fs.startServer(fileStoragePath);
         } catch (IOException e1) {

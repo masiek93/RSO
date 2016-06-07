@@ -1,6 +1,4 @@
-package pl.edu.pw.elka.rso;
-
-import java.io.Serializable;
+package pl.edu.pw.elka.rso.fileServer;
 
 enum ShareRequestOperation {UPLOAD, UPLOAD_SUCCESSFUL}
 
