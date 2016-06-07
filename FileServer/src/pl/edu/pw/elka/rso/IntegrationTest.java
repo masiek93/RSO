@@ -11,6 +11,7 @@ import java.net.Socket;
 import org.junit.Before;
 import org.junit.Test;
 
+import pl.edu.pw.elka.rso.message.data.FileSrvRegReq;
 import pl.edu.pw.elka.rso.ssl.SServerSocketFactory;
 
 public class IntegrationTest {
@@ -68,11 +69,11 @@ public class IntegrationTest {
 					oos = new ObjectOutputStream(socket.getOutputStream());
 					ois = new ObjectInputStream(socket.getInputStream());
 					object = (Object) ois.readObject();
-					if(object instanceof RegistrationMessage){
+					if(object instanceof FileSrvRegReq){
 						//wait for RegistrationMessage
 						//send serverID
-						RegistrationMessage rm =(RegistrationMessage) object;
-						System.out.println("RegistrationMessage File port:"+rm.getFile_socket_port());
+						FileSrvRegReq rm =(FileSrvRegReq) object;
+						System.out.println("RegistrationMessage File port:"+rm.getFileSocketPort());
 						Integer serverID=1234;
 						oos.writeObject(serverID);
 						object = (Object) ois.readObject();
