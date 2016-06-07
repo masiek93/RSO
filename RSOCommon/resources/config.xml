@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<config>
+    <directoryServerList>
+        <id>0</id>
+        <address>localhost</address>
+        <nodesManagementPort>1234</nodesManagementPort>
+        <clientConnectionPort>4321</clientConnectionPort>
+        <synchronizationPort>3421</synchronizationPort>
+    </directoryServerList>
+    <directoryServerList>
+        <id>1</id>
+        <address>localhost</address>
+        <nodesManagementPort>4321</nodesManagementPort>
+        <clientConnectionPort>23</clientConnectionPort>
+        <synchronizationPort>4</synchronizationPort>
+    </directoryServerList>
+
+    <dbTestPath>resources/db/test</dbTestPath>
+    <dbProdPath>resources/db/prod</dbProdPath>
+
+    <!-- TODO: for deployment change backupProd to prod -->
+    <backupDbProdPath>resources/db/backupProd</backupDbProdPath>
+
+</config>
