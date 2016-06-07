@@ -1,4 +1,4 @@
-package pl.edu.pw.elka.rso;
+package pl.edu.pw.elka.rso.fileServer;
 
 enum Type{ FILE_RECIVED,FILE_DELETED }
 enum Status {SUCCESSFUL, UNSUCCESSFUL }

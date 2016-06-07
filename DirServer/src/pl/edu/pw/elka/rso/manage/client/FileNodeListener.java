@@ -15,11 +15,11 @@ public class FileNodeListener extends ClientListener {
 
 
 
-    public FileNodeListener(String idFilePath) {
+    public FileNodeListener(String idFilePath, long size) {
         super(idFilePath, NodeType.FILE_NODE);
 
         // tutaj serwer plikow powinnien wstawic jaki ma rozmiar
-        thisNode.setSize(1000);
+        thisNode.setSize(size);
 
     }
 
@@ -52,6 +52,7 @@ public class FileNodeListener extends ClientListener {
         // nothing specific for now
         // in future we might send additional stuff like making file server send files to another file server
 
+       // handlers.put(EventType.)
     }
 
 
