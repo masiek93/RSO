@@ -22,7 +22,7 @@ public class Config {
 
     // static fields, not serialized
     private static Config config;
-    private static String configFile = "resources/config.xml";
+    private static String configFile = "../RSOCommon/resources/config.xml";
 
 
     public void Config() {
