@@ -15,11 +15,12 @@ public class FileNodeListener extends ClientListener {
 
 
 
-    public FileNodeListener(String idFilePath, long size) {
+    public FileNodeListener(String idFilePath, long size, int port) {
         super(idFilePath, NodeType.FILE_NODE);
 
         // tutaj serwer plikow powinnien wstawic jaki ma rozmiar
         thisNode.setSize(size);
+        thisNode.setPort(port);
 
     }
 
@@ -33,11 +34,15 @@ public class FileNodeListener extends ClientListener {
         while(true) {
             try {
                 pickServer();
+                LOGGER.info("connected with " + otherNode);
+
                 runner();
             } catch (InterruptedException | IOException e) {
                 try {
                     Thread.sleep(RETRY_PERIOD_MS);
                     NodeScreen.addLogEntry("waiting for any dir node server");
+                    LOGGER.info("waiting for any dir node server");
+
                 } catch (InterruptedException e1) {
 
                 }

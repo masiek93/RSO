@@ -52,10 +52,17 @@ public class DirNodeTest {
             // wylaczam tymczasowo, bo chcialbym ogladac czerwone logi. Potem bedzie mozna
             // przekierowac logowanie systemu na plik ustawiajac cos w konifugracji
             NodeScreen.setSilent(true);
+            ServerConsole serverConsole = new ServerConsole();
+            new Thread(serverConsole).start();
+
+
 
             conList = new ConnectionListener(args[0], Integer.valueOf(args[1]));
             NodeScreen.addLogEntry("runnng a dir node server");
             conList.start();
+
+            // clients handler
+            new ClientService(new Integer(args[2])).start();
 
         } catch (IOException | MetaDataRepositoryException | JAXBException e) {
             LOGGER.error("error", e);
@@ -84,7 +91,7 @@ public class DirNodeTest {
         c.start();
 
         LOGGER.info("node screen is silent now");
-
+        NodeScreen.setSilent(true);
 
         tryToReconnect(c);
     }

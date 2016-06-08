@@ -9,5 +9,14 @@ public enum Type {
     ID_REQ,     // request id
     NODE_TYPE, // type of server
 
-    READY, ID_SHOW, ID_CHANGE_ID, EVENT, ID_RES
+    READY, ID_SHOW, ID_CHANGE_ID, EVENT, ID_RES,
+
+
+
+    // client <-> directory server
+    GET_FILE_LIST,
+    GET_FILE,
+    ADD_FILE,
+    DELETE_FILE
+
 }

@@ -102,6 +102,9 @@ public class ConnectionHandler implements Runnable, EventListener {
             initialPhase();
 
 
+            LOGGER.info("initial phase completed successfully");
+
+
             while (isConnected()) {
                 try {
 
@@ -201,7 +204,7 @@ public class ConnectionHandler implements Runnable, EventListener {
         switch (msg.getType()) {
             case ID_REQ:
                 clientNode.setId(idMng.newId());
-                oStr.writeObject(Messages.srvRegRespMsg(clientNode.getId()));
+                oStr.writeObject(Messages.respondIdMsg(clientNode.getId()));
                 break;
             case ID_SHOW:
                 // client request id to be accepted by the server

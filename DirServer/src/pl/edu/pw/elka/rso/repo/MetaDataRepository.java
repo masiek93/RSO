@@ -46,7 +46,7 @@ public interface MetaDataRepository {
      * @param fileName the name of the file to be deleted
      * @throws MetaDataRepositoryException if the file cannot be deleted
      */
-    void deleteFile(String fileName) throws MetaDataRepositoryException;
+    List<Node> deleteFile(String fileName) throws MetaDataRepositoryException;
 
 
     /**

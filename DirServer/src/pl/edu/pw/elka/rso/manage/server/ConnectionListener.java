@@ -1,5 +1,7 @@
 package pl.edu.pw.elka.rso.manage.server;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import pl.edu.pw.elka.rso.manage.node.Node;
 import pl.edu.pw.elka.rso.manage.node.NodeRegister;
 import pl.edu.pw.elka.rso.manage.node.NodeType;
@@ -23,6 +25,8 @@ public class ConnectionListener implements Runnable {
     Node thisNode = new Node();
 
     String idFilePath;
+
+    Logger LOGGER = LoggerFactory.getLogger(ConnectionListener.class);
 
     public ConnectionListener(String idFilePath, int port) throws IOException {
 
@@ -77,6 +81,8 @@ public class ConnectionListener implements Runnable {
     public void run() {
         try {
             NodeScreen.addLogEntry("server " + thisNode + "  is ready for new connections");
+
+            LOGGER.info("node coordinator service started on port {}", thisNode.getPort());
             while (isRunning()) {
 
                 Socket sock = serverSocket.accept();

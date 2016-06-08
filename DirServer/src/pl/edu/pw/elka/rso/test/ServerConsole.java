@@ -67,7 +67,7 @@ public class ServerConsole implements Runnable{
                                 repository.updateNodeSize(node.getId(), -fileSize);
                             }
 
-                        } catch (Controller.SystemException e) {
+                        } catch (SystemException e) {
                            console.printf("cannot add file: %s\n", e.errorCode.toString());
                         } catch (MetaDataRepositoryException e) {
                             e.printStackTrace();
@@ -88,7 +88,7 @@ public class ServerConsole implements Runnable{
                                     console.printf("%d, ", node.getId());
                             }
                             console.printf("]\n\n");
-                        } catch (Controller.SystemException e) {
+                        } catch (SystemException e) {
                             console.printf("cannot get file: %s \n", e.errorCode.toString());
                         }
                     }
@@ -129,7 +129,7 @@ public class ServerConsole implements Runnable{
 
                             }
 
-                        } catch (Controller.SystemException e) {
+                        } catch (SystemException e) {
                             System.out.println("error while deleting a file: " + e.errorCode.toString());
                             e.printStackTrace();
                         }

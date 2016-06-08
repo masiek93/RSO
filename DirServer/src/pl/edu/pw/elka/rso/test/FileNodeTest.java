@@ -12,7 +12,7 @@ public class FileNodeTest {
 
     public static void main(String[] args) throws IOException, InterruptedException {
 
-        ClientListener cli = new FileNodeListener(args[0], 10009);
+        ClientListener cli = new FileNodeListener(args[0], 10009, 13);
         FileNodeScreen.start(new FileNodeScreenDataProvider(cli));
         cli.start();
 

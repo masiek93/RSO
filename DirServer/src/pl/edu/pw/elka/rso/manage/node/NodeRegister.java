@@ -69,6 +69,7 @@ public class NodeRegister implements Serializable {
     public void registerNode(Node node) {
         if (nodes.containsKey(node.getId())) {
             nodes.get(node.getId()).setAlive(true);
+            nodes.get(node.getId()).setSize(node.getSize());
         } else {
             nodes.put(node.getId(), node);
         }

@@ -221,12 +221,13 @@ public class MetaDataRWRespository implements MetaDataRepository {
 
 
     @Override
-    public synchronized void deleteFile(String fileName) throws MetaDataRepositoryException {
+    public synchronized List<Node> deleteFile(String fileName) throws MetaDataRepositoryException {
 
             FileDTO fdto = getFileIfExists(fileName);
             if(fdto == null) {
                 throw new MetaDataRepositoryException("cannot delete file " + fileName + " because it doesnt exist");
             }
+            List<Node> nodes = fdto.getNodes();
 
             files.remove(fdto.getFileId());
             fileNameIndex.remove(fdto.getFileName());
@@ -235,6 +236,7 @@ public class MetaDataRWRespository implements MetaDataRepository {
             // remove from db
             publishModification(DBFacade.removeFileStmt(fdto.getFileId()));
 
+            return nodes;
 
     }
 
@@ -259,6 +261,10 @@ public class MetaDataRWRespository implements MetaDataRepository {
                 existing.setSize(node.getSize());
                 existing.setAddress(node.getAddress());
                 existing.setAlive(node.isAlive());
+
+                NodeRegister.getInstance().setNodeSize(node.getId(), fileNodes.get(node.getId()).getSize());
+
+                publishModification(DBFacade.updateNodeSizeStmt(fileNodes.get(node.getId())));
             }
         }
     }

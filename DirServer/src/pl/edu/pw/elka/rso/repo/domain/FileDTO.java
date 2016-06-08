@@ -66,7 +66,7 @@ public class FileDTO implements Serializable{
         return creationDate;
     }
 
-    public Collection<Node> getNodes() {
+    public List<Node> getNodes() {
         return nodes;
     }
 

@@ -60,25 +60,6 @@ public class Controller {
         initService();
     }
 
-    enum ErrorCode {
-          NO_AVAILABLE_NODES_TO_WRITE,
-          FILE_ALREADY_EXISTS,
-        FILE_DOESNT_EXIST, INTERNAL_ERROR, NOT_ENOUGH_SPACE_TO_WRITE
-    }
-
-    class SystemException extends Exception{
-        ErrorCode errorCode;
-        String message;
-
-        public SystemException(ErrorCode errorCode, String message) {
-            this.errorCode = errorCode;
-            this.message = message;
-        }
-
-        public SystemException(ErrorCode errorCode) {
-            this.errorCode = errorCode;
-        }
-    }
 
 
     public List<Node> pickTwoNodes(List<Node> nodes) {
@@ -121,7 +102,11 @@ public class Controller {
         List<Node> nodesToAddFile = getNodesWithEnoughSpace(size, aliveFileNodes);
         // rownowazenie obciazen
         List<Node> pickedNodes = pickTwoNodes(nodesToAddFile);
-
+        try {
+            repository.addFile(fileName, size, pickedNodes);
+        } catch (MetaDataRepositoryException e) {
+            LOGGER.error("unable to update database", e);
+        }
         postExec();
 
         return pickedNodes;
@@ -133,19 +118,20 @@ public class Controller {
     }
 
 
-    public boolean deleteFile(String filename) throws SystemException {
+    public List<Node> deleteFile(String filename) throws SystemException {
         preExec();
+
         if(!repository.fileExists(filename)) {
             // zwracmy ok, chociaz plik nie istniej
-            return true;
+            return new ArrayList<>();
         }
         try {
-            repository.deleteFile(filename);
+            return repository.deleteFile(filename);
         } catch (MetaDataRepositoryException e) {
-            throw new SystemException(ErrorCode.FILE_DOESNT_EXIST);
+            return new ArrayList<>();
         }
-        postExec();
-        return true;
+
+
     }
 
     public FileDTO getFile(String filename) throws SystemException {
@@ -162,8 +148,6 @@ public class Controller {
 
 
     }
-
-
 
     private List<Node> getNodesWithEnoughSpace(long size, List<Node> aliveFileNodes) throws SystemException {
         // sprawdzamy ilosc wolnego miejsca na kazdym z wezlow

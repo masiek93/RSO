@@ -16,6 +16,14 @@ public class Messages {
         return new Message(Type.SRV_REG_REQ, listeningPort);
     }
 
+    public static Message requestIdMsg() {
+        return new Message(Type.ID_REQ);
+    }
+
+    public static Message respondIdMsg(Long newId) {
+        return new Message(Type.ID_RES, newId);
+    }
+
     public static Message fileSrvRegReqMsg(int listeningPort, int fileSocketPort) {
         return new Message(Type.FILE_SRV_REG_REQ, new FileSrvRegReq(listeningPort, fileSocketPort));
     }

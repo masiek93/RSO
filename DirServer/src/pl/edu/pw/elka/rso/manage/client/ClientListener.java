@@ -191,7 +191,7 @@ public abstract class ClientListener implements Runnable {
         // send id
 
         if (getId() == null) {
-            oStr.writeMessage(Messages.srvRegReqMsg(getThisNode().getPort()));
+            oStr.writeMessage(Messages.requestIdMsg());
             Message msg = iStr.readMessage();
             setId((Long) msg.getData());
             idChanged = true;
@@ -246,7 +246,7 @@ public abstract class ClientListener implements Runnable {
             initialPhase();
 
             // from now on, the server is responsible for different stuff
-
+            LOGGER.info("initial phase completed with sucess");
             while (isConnected()) {
                 Message msg = iStr.readMessage();
                 switch (msg.getType()) {

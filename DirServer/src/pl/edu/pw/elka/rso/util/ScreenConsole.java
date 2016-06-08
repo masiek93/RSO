@@ -39,4 +39,10 @@ public class ScreenConsole {
             System.out.printf(format, args);
         }
 
+        public void die(String format, Object ... args) {
+            printf(format, args);
+            printf("\nexisting.");
+            System.exit(1);
+        }
+
     }

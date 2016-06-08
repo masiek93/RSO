@@ -7,4 +7,10 @@ public class DeleteFileMessage extends FileMessage {
 	 */
 	private static final long serialVersionUID = 1999474099352517596L;
 
+	public DeleteFileMessage(String id) {
+		this.id = id;
+	}
+
+	public DeleteFileMessage() {
+	}
 }
