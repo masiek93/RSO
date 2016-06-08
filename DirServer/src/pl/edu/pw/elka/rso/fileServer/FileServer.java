@@ -141,27 +141,27 @@ public class FileServer {
                         LOGGER.info("File {} uploaded successfully", ufm.getId());
 
                     }
-                    if (object instanceof ForwardFileMessage) {
-
-                        ForwardFileMessage ffm = (ForwardFileMessage) object;
-                        UploadFileMessage ufm = new UploadFileMessage();
-                        ufm.setId(ffm.getId());
-                        String path = fileStoragePath + "/" + ffm.getId();
-                        File file = new File(path);
-                        ufm.setSizeInBytes(file.length());
-
-                        comunicationSocket = new Socket(ffm.getDestinationAddress(), ffm.getDestinationPort());
-
-                        oos2 = new ObjectOutputStream(comunicationSocket.getOutputStream());
-                        ois2 = new ObjectInputStream(comunicationSocket.getInputStream());
-
-                        oos2.writeObject(ufm);
-
-                        // uwaga: nazwa jest mylaca, ale nie mozna jej zmienic
-                        // tutaj chodzi o to ze communicationSocket sciaga do siebie plik, a nie
-                        // my sciagamy
-                        fh.downloadFile(path, ois2, oos2);
-                    }
+//                    if (object instanceof ForwardFileMessage) {
+//
+//                        ForwardFileMessage ffm = (ForwardFileMessage) object;
+//                        UploadFileMessage ufm = new UploadFileMessage();
+//                        ufm.setId(ffm.getId());
+//                        String path = fileStoragePath + "/" + ffm.getId();
+//                        File file = new File(path);
+//                        ufm.setSizeInBytes(file.length());
+//
+//                        comunicationSocket = new Socket(ffm.getDestinationAddress(), ffm.getDestinationPort());
+//
+//                        oos2 = new ObjectOutputStream(comunicationSocket.getOutputStream());
+//                        ois2 = new ObjectInputStream(comunicationSocket.getInputStream());
+//
+//                        oos2.writeObject(ufm);
+//
+//                        // uwaga: nazwa jest mylaca, ale nie mozna jej zmienic
+//                        // tutaj chodzi o to ze communicationSocket sciaga do siebie plik, a nie
+//                        // my sciagamy
+//                        fh.downloadFile(path, ois2, oos2, dgm);
+//                    }
                 }
             } finally {
                 if (ois != null) ois.close();

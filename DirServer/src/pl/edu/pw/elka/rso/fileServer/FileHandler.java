@@ -15,6 +15,7 @@ public class FileHandler {
 
 
 	static final Logger LOGGER = LoggerFactory.getLogger(FileHandler.class);
+	final static int FILEBUFFERSIZE = 1024;
 
 
 	/**
@@ -23,10 +24,8 @@ public class FileHandler {
      */
 	public void downloadFile(String filename, ObjectInputStream iis, ObjectOutputStream oos) throws IOException {
 
-		try{
+		try (InputStream in = new FileInputStream(filename)){
 
-				InputStream in = new FileInputStream(filename);
-				int FILEBUFFERSIZE = 1024;
 				byte[] bytes = new byte[FILEBUFFERSIZE];
 
 				long fileSize = Files.size(Paths.get(filename));
@@ -60,25 +59,23 @@ public class FileHandler {
 	 * @param size
      */
 	public void uploadFile(String filename, int size, ObjectInputStream iis, ObjectOutputStream oos) throws IOException {
-		try{
+		try (FileOutputStream fos = new FileOutputStream(filename)){
 
-			//read from input stream
-			byte[] content = (byte[]) iis.readObject();
 
-			// mkdirs if there is not any
-			new File(baseName(filename)).mkdirs();
-			// delete previous files
-			Files.deleteIfExists(Paths.get(filename));
 
-			Files.write(Paths.get(filename), content, StandardOpenOption.CREATE, StandardOpenOption.WRITE);
+			int bytesRead;
+			byte[] bytes = new byte[FILEBUFFERSIZE];
+
+			while ((bytesRead = iis.read(bytes)) != -1) {
+				fos.write(bytes, 0, bytesRead);
+			}
+
+
 			LOGGER.info("new file is persisted in {}({})", filename, size);
 
 	    }catch (IOException e) {
 			LOGGER.error("erorr while uploading file {} to fileserver: ", filename,  e);
 			throw e;
-		} catch (ClassNotFoundException e) {
-			LOGGER.error("erorr while uploading file {} to fileserver: ", filename,  e);
-			throw new IOException(e.getMessage());
 		}
 	}
 

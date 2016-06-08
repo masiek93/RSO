@@ -25,6 +25,9 @@ public class FileServerClient {
 
     Logger LOGGER = LoggerFactory.getLogger(FileServerClient.class);
 
+    final static int FILEBUFFERSIZE = 1024;
+
+
     public FileServerClient(String ipAddress, int port) {
         this.port = port;
         this.ipAddress = ipAddress;
@@ -52,11 +55,10 @@ public class FileServerClient {
 
             OutputStream fos = new FileOutputStream(localPath);
 
-            int FILEBUFFERSIZE = 1024;
             byte[] bytes = new byte[FILEBUFFERSIZE];
 
 
-            // size of file
+            // size of file. Not used but must be.
             long fileSize = iis.readLong();
 
             int bytesRead;
@@ -75,14 +77,18 @@ public class FileServerClient {
 
     public void uplodaFile(String localPath, String serverPath) throws IOException {
 
-        try (Socket socket = SSocketFactory.createSocket(ipAddress, port)) {
+        try (Socket socket = SSocketFactory.createSocket(ipAddress, port);
+             InputStream fis = new FileInputStream(localPath)) {
 
             ObjectOutputStream oos = new ObjectOutputStream(socket.getOutputStream());
 
 
-            byte[] ret = Files.readAllBytes(Paths.get(localPath));
-            oos.writeObject(new UploadFileMessage(serverPath, ret.length));
-            oos.writeObject(ret);
+            int bytesRead;
+            byte[] bytes = new byte[FILEBUFFERSIZE];
+            while ((bytesRead = fis.read(bytes)) != -1) {
+                oos.write(bytes, 0, bytesRead);
+            }
+            oos.flush();
 
             LOGGER.info("sucess while uploading file {}", localPath);
 

@@ -1,0 +1,26 @@
+group 'RSO'
+version '1.0.0'
+
+buildscript {
+    repositories { jcenter() }
+    dependencies {
+        classpath 'com.github.jengelman.gradle.plugins:shadow:1.2.2'
+    }
+}
+
+apply plugin: 'java'
+apply plugin: 'application'
+apply plugin: 'com.github.johnrengelman.shadow'
+
+compileJava.options.encoding = 'UTF-8'
+
+repositories {
+    mavenCentral()
+}
+
+mainClassName = 'pl.edu.pw.elka.rso.client.ClientConsole'
+
+task(jar_client) << {
+    mainClassName = 'pl.edu.pw.elka.rso.client.ClientConsole'
+    tasks.shadowJar.execute()
+}
