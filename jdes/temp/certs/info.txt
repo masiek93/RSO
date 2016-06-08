@@ -1,7 +1,0 @@
-
-# info dla certyfikatow
-openssl key passphrase: q1w2e3r4t5
-common name: c.rso.elka.pw.edu.pl
-clientkeystore passphrase: changeit
-serverkeystore: q1w2e3r4t5
-serverpasskey: q1w2e3r4t5

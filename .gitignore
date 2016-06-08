@@ -4,7 +4,9 @@
 .mtj.tmp/
 
 # Package Files #
+
 *.jar
+!DirServer/lib/*.jar
 *.war
 *.ear
 
