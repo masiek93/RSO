@@ -240,6 +240,7 @@ public abstract class ClientListener implements Runnable {
             iStr = new MessageInputStream(socket.getInputStream());
             oStr = new MessageOutputStream(socket.getOutputStream());
 
+            thisNode.setAddress(socket.getInetAddress().getHostAddress());
 
             setConnected(true);
 
