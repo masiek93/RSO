@@ -62,14 +62,11 @@ public class FileHandler {
 		try (FileOutputStream fos = new FileOutputStream(filename)){
 
 
-			LOGGER.info("started receiving file {}({})", filename, size);
-
 			int bytesRead;
 			byte[] bytes = new byte[FILEBUFFERSIZE];
 
 			while ((bytesRead = iis.read(bytes)) != -1) {
 				fos.write(bytes, 0, bytesRead);
-				LOGGER.info("part received {}({})", filename, bytesRead);
 			}
 
 
