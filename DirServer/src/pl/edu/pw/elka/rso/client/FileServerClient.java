@@ -46,19 +46,22 @@ public class FileServerClient {
                     localPath = localPath.substring(0, localPath.length() - 1);
                 }
                 new File(localPath.substring(0, localPath.lastIndexOf("/"))).mkdirs();
-            }            
-            
-            FileOutputStream file_os = new FileOutputStream(localPath);
-            
-            while(true)
-            {
-                Object content =  iis.readObject();
-            	if(content instanceof byte[]){
-            		file_os.write((byte[])content);
-            	}
-            	else {
-            		break;
-            	}
+            }
+
+
+
+            OutputStream fos = new FileOutputStream(localPath);
+
+            int FILEBUFFERSIZE = 1024;
+            byte[] bytes = new byte[FILEBUFFERSIZE];
+
+
+            // size of file
+            long fileSize = iis.readLong();
+
+            int bytesRead;
+            while ((bytesRead = iis.read(bytes)) != -1) {
+                fos.write(bytes, 0, bytesRead);
             }
 
             LOGGER.info("saved to {}", localPath);
@@ -66,9 +69,6 @@ public class FileServerClient {
         } catch (IOException e) {
             LOGGER.error("error while downloading file {}", serverPath, e);
             throw e;
-        } catch (ClassNotFoundException e) {
-            LOGGER.error("error while downloading file {}", serverPath, e);
-            throw new IOException(e.getMessage());
         }
 
     }

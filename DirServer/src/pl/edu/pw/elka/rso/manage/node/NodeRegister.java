@@ -59,6 +59,10 @@ public class NodeRegister implements Serializable {
 
     }
 
+    public Node getNode(long id) {
+        return nodes.get(id);
+    }
+
     public synchronized void deregisterNode(Long id) {
         Node node = nodes.get(id);
         if (node != null) {

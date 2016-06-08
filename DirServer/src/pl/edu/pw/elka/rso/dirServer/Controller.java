@@ -109,13 +109,14 @@ public class Controller {
         }
         postExec();
 
-        return pickedNodes;
+        return updateNodePortDetail(pickedNodes);
     }
 
     public List<FileDTO> getFileList() {
 
         return repository.getFileList();
     }
+
 
 
     public List<Node> deleteFile(String filename) throws SystemException {
@@ -126,7 +127,7 @@ public class Controller {
             return new ArrayList<>();
         }
         try {
-            return repository.deleteFile(filename);
+            return updateNodePortDetail(repository.deleteFile(filename));
         } catch (MetaDataRepositoryException e) {
             return new ArrayList<>();
         }
@@ -141,12 +142,27 @@ public class Controller {
         }
 
         try {
-            return repository.getFile(filename);
+            FileDTO dto = repository.getFile(filename);
+            updateNodePortDetail(dto.getNodes());
+            return dto;
         } catch (MetaDataRepositoryException e) {
            throw new SystemException(ErrorCode.INTERNAL_ERROR, e.getMessage());
         }
 
 
+    }
+
+    private List<Node> updateNodePortDetail(List<Node> nodes) {
+        for(int i = 0; i < nodes.size(); ++i) {
+            Node node = nodes.get(i);
+            if(node != null && node.getId() != null) {
+                Node node1 = nodeRegister.getNode(node.getId());
+                if(node1 != null) {
+                    node.setPort(node1.getPort());
+                }
+            }
+        }
+        return nodes;
     }
 
     private List<Node> getNodesWithEnoughSpace(long size, List<Node> aliveFileNodes) throws SystemException {

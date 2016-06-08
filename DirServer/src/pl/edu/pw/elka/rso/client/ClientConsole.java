@@ -170,12 +170,14 @@ public class ClientConsole implements Runnable {
                             } else {
 
                                 printFileInfo(console, fileDTO);
-
+                                fileDTO.getNodes().forEach(System.out::println);
                                 List<FileServerClient> clients = findAliveFileServers(fileDTO.getNodes());
                                 boolean downloaded = false;
 
                                 for (FileServerClient fileServerClient : clients) {
                                     try {
+                                        console.printf("trying to download from %s:%s\n", fileServerClient.getAddress(), fileServerClient.getPort());
+
                                         fileServerClient.downloadFile(serverPath, localPath);
                                         console.printf("sucess: got %s\n", serverPath);
                                         downloaded = true;
