@@ -1,4 +1,4 @@
-package pl.edu.pw.elka.rso.test;
+package pl.edu.pw.elka.rso.dirServer;
 
 
 import org.slf4j.Logger;
@@ -23,26 +23,38 @@ import java.io.IOException;
  * Dir node: check if there is a main dir node. If there isn't any one, run
  * server instance.
  */
-public class DirNodeTest {
+public class DirNode {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(DirNodeTest.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(DirNode.class);
+
+    static int nodeManagementPort;
+    static int clientPort;
+    static String idFilePath;
+
 
     public static void main(String[] args) throws InterruptedException, IOException {
 
         // setup java properties
 
         // run dir node client. If it wont connect then run server.
-        if(args == null || args.length == 0) {
-            args = new String[]{null, "1234"};
+        if(args.length < 3) {
+            System.out.println("Error: bad arguments");
+            System.out.println("Usage: DirNode idFilePath nodeManagementPort clientPort");
+            System.out.println("Example: DirNode resources/gen/id.txt 1234 4321");
+            System.exit(1);
+        } else {
+            idFilePath = args[0];
+            nodeManagementPort = Integer.valueOf(args[1]);
+            clientPort = Integer.valueOf(args[2]);
         }
 
-        tryRunClient(args);
+        tryRunClient();
         NodeScreen.addLogEntry("dir node  didnt find any dir servers");
-        runServer(args);
+        runServer();
 
     }
 
-    private static void runServer(String[] args) {
+    private static void runServer() {
         ConnectionListener conList = null;
         try {
 
@@ -57,12 +69,12 @@ public class DirNodeTest {
 
 
 
-            conList = new ConnectionListener(args[0], Integer.valueOf(args[1]));
+            conList = new ConnectionListener(idFilePath, nodeManagementPort);
             NodeScreen.addLogEntry("runnng a dir node server");
             conList.start();
 
             // clients handler
-            new ClientService(new Integer(args[2])).start();
+            new ClientService(clientPort).start();
 
         } catch (IOException | MetaDataRepositoryException | JAXBException e) {
             LOGGER.error("error", e);
@@ -85,8 +97,8 @@ public class DirNodeTest {
 
     }
 
-    private static void tryRunClient(String[] args) throws InterruptedException {
-        ClientListener c = new DirNodeListener(args[0], new Integer(args[1]));
+    private static void tryRunClient() throws InterruptedException {
+        ClientListener c = new DirNodeListener(idFilePath, nodeManagementPort);
         DirNodeScreen.start(new DirNodeScreenDataProvider(c));
         c.start();
 

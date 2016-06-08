@@ -1,4 +1,4 @@
-package pl.edu.pw.elka.rso.test;
+package pl.edu.pw.elka.rso.dirServer;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

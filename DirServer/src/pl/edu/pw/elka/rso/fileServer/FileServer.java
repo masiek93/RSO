@@ -284,8 +284,26 @@ public class FileServer {
 //        }
 //    }
 
+    static int serverPort;
+    static String storageDirectory;
+    static String idFilePath;
+
     public static void main(String[] args) {
-        FileServer fs = new FileServer(args[0], args[1], Integer.valueOf(args[2]));
+
+
+        if(args.length < 3) {
+            System.out.println("Error: bad arguments");
+            System.out.println("Usage: FileServer storageDirectory idFilePath serverPort");
+            System.out.println("Example: FileServer storage1 resources/gen/id.txt 3456");
+
+            System.exit(1);
+        } else {
+            storageDirectory = args[0];
+            idFilePath = args[1];
+            serverPort = Integer.valueOf(args[2]);
+        }
+
+        FileServer fs = new FileServer(storageDirectory, idFilePath, serverPort);
 
 
 

@@ -1,4 +1,4 @@
-package pl.edu.pw.elka.rso.test;
+package pl.edu.pw.elka.rso.dirServer;
 
 
 import pl.edu.pw.elka.rso.manage.client.ClientListener;

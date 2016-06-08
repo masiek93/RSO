@@ -1,4 +1,4 @@
-package pl.edu.pw.elka.rso.test;
+package pl.edu.pw.elka.rso.dirServer;
 
 public enum ErrorCode {
           NO_AVAILABLE_NODES_TO_WRITE,

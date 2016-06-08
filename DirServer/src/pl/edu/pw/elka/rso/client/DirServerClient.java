@@ -10,8 +10,8 @@ import pl.edu.pw.elka.rso.message.Message;
 import pl.edu.pw.elka.rso.message.Type;
 import pl.edu.pw.elka.rso.repo.domain.FileDTO;
 import pl.edu.pw.elka.rso.ssl.SSocketFactory;
-import pl.edu.pw.elka.rso.test.ErrorCode;
-import pl.edu.pw.elka.rso.test.SystemException;
+import pl.edu.pw.elka.rso.dirServer.ErrorCode;
+import pl.edu.pw.elka.rso.dirServer.SystemException;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;
@@ -19,7 +19,6 @@ import java.io.ObjectOutputStream;
 import java.net.Socket;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.ArrayList;
 import java.util.List;
 
 public class DirServerClient {

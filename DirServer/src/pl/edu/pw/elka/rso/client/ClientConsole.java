@@ -7,7 +7,7 @@ import pl.edu.pw.elka.rso.config.Config;
 import pl.edu.pw.elka.rso.config.DirectoryServerConf;
 import pl.edu.pw.elka.rso.manage.node.Node;
 import pl.edu.pw.elka.rso.repo.domain.FileDTO;
-import pl.edu.pw.elka.rso.test.SystemException;
+import pl.edu.pw.elka.rso.dirServer.SystemException;
 import pl.edu.pw.elka.rso.util.ScreenConsole;
 
 import javax.xml.bind.JAXBException;
@@ -85,6 +85,12 @@ public class ClientConsole implements Runnable {
             String command = tokens[0].toLowerCase();
 
             DirServerClient dirServerClient = pickDirServerClient();
+
+            if(line.equalsIgnoreCase("exitt")) {
+                System.exit(0);
+            }
+
+
             if (dirServerClient == null) {
                 console.printf("internal server error = could not find any alive directory node.\n");
                 continue;
