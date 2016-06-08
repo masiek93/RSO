@@ -129,6 +129,7 @@ public class ClientConsole implements Runnable {
                                         LOGGER.info("trying {}:{}", fsc.getAddress(), fsc.getPort());
                                         fsc.uplodaFile(localPath, serverPath);
                                         successNo++;
+                                        console.printf("successfully uploaded to %s:%s\n", fsc.getAddress(), fsc.getPort());
                                     } catch (IOException e) {
                                         LOGGER.error("error while uploading to {}:{}", fsc.getAddress(), fsc.getPort(), e);
                                     }
@@ -136,6 +137,8 @@ public class ClientConsole implements Runnable {
 
                                 if (successNo == 0) {
                                     console.printf("uploading file %s failed.\n", serverPath);
+                                } else {
+                                    console.printf("successfully uploaded to sytem.\n");
                                 }
 
                             }
@@ -166,7 +169,6 @@ public class ClientConsole implements Runnable {
 
                             } else {
 
-                                printFileInfo(console, fileDTO);
                                 printFileInfo(console, fileDTO);
 
                                 List<FileServerClient> clients = findAliveFileServers(fileDTO.getNodes());
@@ -247,7 +249,7 @@ public class ClientConsole implements Runnable {
                                 try {
                                     for (FileServerClient fileServerClient : clients) {
                                         fileServerClient.deleteFile(serverPath);
-                                        console.printf("success. file deleted\n");
+                                        console.printf("success. file deleted from system\n");
                                     }
                                 } catch (IOException e) {
                                     console.printf("failur\n");

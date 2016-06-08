@@ -76,84 +76,95 @@ public class FileServer {
             try {
 
                 LOGGER.info("Server has accepted a new connetion with client = {}:{}", socket.getInetAddress().getHostAddress(), socket.getPort());
-                oos = new ObjectOutputStream(socket.getOutputStream());
-                ois = new ObjectInputStream(socket.getInputStream());
+                try {
+                    oos = new ObjectOutputStream(socket.getOutputStream());
+                    ois = new ObjectInputStream(socket.getInputStream());
+                } catch (IOException ex) {
+                    LOGGER.info("connection reseted");
+                    return;
+                }
                 FileHandler fh = new FileHandler();
+                while(socket.isConnected() && socket.getInputStream().available() == 0) {
+                    Thread.sleep(100);
+                }
+                if(!socket.isConnected()) {
+                  LOGGER.info("client is testing connection");
+                } else {
+                    object = ois.readObject();
 
-                object = ois.readObject();
 
-                if (object instanceof SystemMessage) {
-                    SystemMessage systemMessage = (SystemMessage) object;
-                    if (systemMessage.getOperation().equals(Operation.GET_FREE_SPACE)) {
-                        File file = new File(fileStoragePath);
-                        Long free_space = file.getUsableSpace();
-                        oos.writeObject(free_space);
+                    if (object instanceof SystemMessage) {
+                        SystemMessage systemMessage = (SystemMessage) object;
+                        if (systemMessage.getOperation().equals(Operation.GET_FREE_SPACE)) {
+                            File file = new File(fileStoragePath);
+                            Long free_space = file.getUsableSpace();
+                            oos.writeObject(free_space);
+                        }
+                        if (systemMessage.getOperation().equals(Operation.GET_FILE_LIST)) {
+                            File folder = new File(fileStoragePath);
+                            String[] listOfFiles = folder.list();
+                            oos.writeObject(listOfFiles);
+                        }
                     }
-                    if (systemMessage.getOperation().equals(Operation.GET_FILE_LIST)) {
-                        File folder = new File(fileStoragePath);
-                        String[] listOfFiles = folder.list();
-                        oos.writeObject(listOfFiles);
+                    if (object instanceof DownloadFileMessage) {
+                        LOGGER.info("Got DownloadFileMessage Request.");
+                        DownloadFileMessage dgm = (DownloadFileMessage) object;
+                        fh.downloadFile(fileStoragePath + "/" + dgm.getId(), ois, oos);
+                        LOGGER.info("File {} downloaded successfully", dgm.getId());
+                    }
+                    if (object instanceof DeleteFileMessage) {
+                        LOGGER.info("Got DeleteFileMessage Request.");
+
+                        DeleteFileMessage dflm = (DeleteFileMessage) object;
+                        String path_str = fileStoragePath + "/" + dflm.getId();
+                        Path path = Paths.get(path_str);
+                        try {
+                            Files.delete(path);
+                            LOGGER.info("File {} deleted", path);
+                        } catch (NoSuchFileException x) {
+                            LOGGER.error(String.format("%s: no such" + " file or directory%n", path));
+                        } catch (DirectoryNotEmptyException x) {
+                            LOGGER.error(String.format("%s not empty%n", path));
+                        } catch (IOException x) {
+                            // File permission problems are caught here.
+                            LOGGER.error("unkown problem", x);
+                        }
+                    }
+                    if (object instanceof UploadFileMessage) {
+                        LOGGER.info("Got UploadFileMessage Request.");
+
+                        UploadFileMessage ufm = (UploadFileMessage) object;
+                        String path = fileStoragePath + "/" + ufm.getId();
+
+                        fh.uploadFile(path, (int) ufm.getSizeInBytes(), ois, oos);
+                        // send notification to directory server
+                        //confirmationMessageToDirectoryServer(socketToDirectoryServer, Type.FILE_RECIVED, Status.SUCCESSFUL, ufm.getId(), getDigest(path), serverID);
+
+                        LOGGER.info("File {} uploaded successfully", ufm.getId());
+
+                    }
+                    if (object instanceof ForwardFileMessage) {
+
+                        ForwardFileMessage ffm = (ForwardFileMessage) object;
+                        UploadFileMessage ufm = new UploadFileMessage();
+                        ufm.setId(ffm.getId());
+                        String path = fileStoragePath + "/" + ffm.getId();
+                        File file = new File(path);
+                        ufm.setSizeInBytes(file.length());
+
+                        comunicationSocket = new Socket(ffm.getDestinationAddress(), ffm.getDestinationPort());
+
+                        oos2 = new ObjectOutputStream(comunicationSocket.getOutputStream());
+                        ois2 = new ObjectInputStream(comunicationSocket.getInputStream());
+
+                        oos2.writeObject(ufm);
+
+                        // uwaga: nazwa jest mylaca, ale nie mozna jej zmienic
+                        // tutaj chodzi o to ze communicationSocket sciaga do siebie plik, a nie
+                        // my sciagamy
+                        fh.downloadFile(path, ois2, oos2);
                     }
                 }
-                if (object instanceof DownloadFileMessage) {
-                    LOGGER.info("Got DownloadFileMessage Request.");
-                    DownloadFileMessage dgm = (DownloadFileMessage) object;
-                    fh.downloadFile(fileStoragePath + "/" + dgm.getId(), ois, oos);
-                    LOGGER.info("File {} downloaded successfully", dgm.getId());
-                }
-                if (object instanceof DeleteFileMessage) {
-                    LOGGER.info("Got DeleteFileMessage Request.");
-
-                    DeleteFileMessage dflm = (DeleteFileMessage) object;
-                    String path_str = fileStoragePath + "/" + dflm.getId();
-                    Path path = Paths.get(path_str);
-                    try {
-                        Files.delete(path);
-                        LOGGER.info("File {} deleted", path);
-                    } catch (NoSuchFileException x) {
-                        LOGGER.error(String.format("%s: no such" + " file or directory%n", path));
-                    } catch (DirectoryNotEmptyException x) {
-                        LOGGER.error(String.format("%s not empty%n", path));
-                    } catch (IOException x) {
-                        // File permission problems are caught here.
-                        LOGGER.error("unkown problem", x);
-                    }
-                }
-                if (object instanceof UploadFileMessage) {
-                    LOGGER.info("Got UploadFileMessage Request.");
-
-                    UploadFileMessage ufm = (UploadFileMessage) object;
-                    String path = fileStoragePath + "/" + ufm.getId();
-
-                    fh.uploadFile(path, (int) ufm.getSizeInBytes(), ois, oos);
-                    // send notification to directory server
-                    //confirmationMessageToDirectoryServer(socketToDirectoryServer, Type.FILE_RECIVED, Status.SUCCESSFUL, ufm.getId(), getDigest(path), serverID);
-
-                    LOGGER.info("File {} uploaded successfully", ufm.getId());
-
-                }
-                if (object instanceof ForwardFileMessage) {
-
-                    ForwardFileMessage ffm = (ForwardFileMessage) object;
-                    UploadFileMessage ufm = new UploadFileMessage();
-                    ufm.setId(ffm.getId());
-                    String path = fileStoragePath + "/" + ffm.getId();
-                    File file = new File(path);
-                    ufm.setSizeInBytes(file.length());
-
-                    comunicationSocket = new Socket(ffm.getDestinationAddress(), ffm.getDestinationPort());
-
-                    oos2 = new ObjectOutputStream(comunicationSocket.getOutputStream());
-                    ois2 = new ObjectInputStream(comunicationSocket.getInputStream());
-
-                    oos2.writeObject(ufm);
-
-                    // uwaga: nazwa jest mylaca, ale nie mozna jej zmienic
-                    // tutaj chodzi o to ze communicationSocket sciaga do siebie plik, a nie
-                    // my sciagamy
-                    fh.downloadFile(path, ois2, oos2);
-                }
-
             } finally {
                 if (ois != null) ois.close();
                 if (oos != null) oos.close();
