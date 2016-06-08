@@ -82,6 +82,7 @@ public class FileServerClient {
 
             ObjectOutputStream oos = new ObjectOutputStream(socket.getOutputStream());
 
+            oos.writeObject(new UploadFileMessage(serverPath, new File(localPath).length()));
 
             int bytesRead;
             byte[] bytes = new byte[FILEBUFFERSIZE];
