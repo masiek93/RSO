@@ -21,13 +21,28 @@ public class FileHandler {
 	 * Download file from server.
 	 * @param filename
      */
-	public void downloadFile(String filename, ObjectInputStream iis, ObjectOutputStream oos) throws IOException {
+	public void downloadFile(String filename, ObjectInputStream iis, ObjectOutputStream oos, DownloadFileMessage dfm) throws IOException {
 
 		try{
-				byte[] fileContent = Files.readAllBytes(Paths.get(filename));
-
-				oos.writeObject(fileContent);
-
+				InputStream is;
+				is = new FileInputStream(filename);
+				is.skip(dfm.getFromBytes());
+				
+				final int sizeBuffor = 1000;
+				byte[] b = new byte[sizeBuffor];
+				while(is.available() > 0 ){
+					int readed = is.read(b);
+					
+					if(sizeBuffor == readed){
+						oos.writeObject(b);						
+					}
+					else{
+						byte[] b2 = Arrays.copyOf(b, readed);;
+						oos.writeObject(b2);
+					}
+				}
+				oos.writeObject(true);
+				
 				LOGGER.info("Sending to client " + filename + "(" + fileContent.length + " bytes)");
 		        oos.flush();
 

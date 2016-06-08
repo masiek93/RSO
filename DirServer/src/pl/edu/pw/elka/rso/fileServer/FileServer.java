@@ -109,7 +109,7 @@ public class FileServer {
                     if (object instanceof DownloadFileMessage) {
                         LOGGER.info("Got DownloadFileMessage Request.");
                         DownloadFileMessage dgm = (DownloadFileMessage) object;
-                        fh.downloadFile(fileStoragePath + "/" + dgm.getId(), ois, oos);
+                        fh.downloadFile(fileStoragePath + "/" + dgm.getId(), ois, oos, dgm);
                         LOGGER.info("File {} downloaded successfully", dgm.getId());
                     }
                     if (object instanceof DeleteFileMessage) {

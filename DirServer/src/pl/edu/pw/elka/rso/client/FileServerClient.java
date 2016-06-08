@@ -40,21 +40,26 @@ public class FileServerClient {
             ObjectOutputStream oos = new ObjectOutputStream(socket.getOutputStream());
             ObjectInputStream iis = new ObjectInputStream(socket.getInputStream());
 
-            oos.writeObject(new DownloadFileMessage(serverPath));
-
-            byte[] content = (byte[]) iis.readObject();
-                // try making dirs
-
-            LOGGER.info("downloaded successfully. Trying to save to file.");
-
+            // try making dirs            
             if(localPath.contains("/")) {
                 if (localPath.lastIndexOf("/") == localPath.length() - 1) {
                     localPath = localPath.substring(0, localPath.length() - 1);
                 }
                 new File(localPath.substring(0, localPath.lastIndexOf("/"))).mkdirs();
+            }            
+            
+            FileOutputStream file_os = new FileOutputStream(localPath);
+            
+            while(true)
+            {
+                Object content =  iis.readObject();
+            	if(content instanceof byte[]){
+            		file_os.write((byte[])content);
+            	}
+            	else {
+            		break;
+            	}
             }
-
-            Files.write(Paths.get(localPath), content, StandardOpenOption.CREATE, StandardOpenOption.WRITE);
 
             LOGGER.info("saved to {}", localPath);
 
