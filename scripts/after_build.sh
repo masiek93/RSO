@@ -1,23 +1,33 @@
+#!/bin/bash
 echo Copying outputs...
 
 cd ../out/artifacts
 
-# renaming jars
+echo "Renaming jars"
 mv Client/RSO.jar Client/Client.jar
 mv FileServer/RSO.jar FileServer/FileServer.jar
 mv DirServer/RSO.jar DirServer/DirServer.jar
 
-# copying resources
-cp -r ../../DirServer/resources Client
-cp -r ../../DirServer/resources FileServer
-cp -r ../../DirServer/resources DirServer
+echo "Copying resources"
+cp -r ../../DirServer/resources .
+echo "Emptying db"
+rm ./resources/db/*
+touch ./resources/db/.DO_NOT_DELETE
+echo "Spreading resources across all instances"
+cp -r ./resources Client
+cp -r ./resources FileServer
+cp -r ./resources DirServer
+echo "Copying resources to demo script data"
+rm -r ../../scripts/data/resources
+cp -r ./resources ../../scripts/data
+#rm -r ./resources
 
-# copying storage
-cp -r ../../DirServer/storage1 FileServer
-cp -r ../../DirServer/storage3 FileServer
-cp -r ../../DirServer/storage2 FileServer
+echo "Creating empty storages"
+mkdir  FileServer/storage1
+mkdir  FileServer/storage2
+mkdir  FileServer/storage3
 
-# for docker
+echo "Copying jars for docker"
 cd ..
 mkdir docker
 cd docker
@@ -25,5 +35,5 @@ cp ../artifacts/Client/Client.jar .
 cp ../artifacts/FileServer/FileServer.jar .
 cp ../artifacts/DirServer/DirServer.jar .
 
-echo Done
+echo "Done"
 
