@@ -13,7 +13,7 @@ public class Node implements Serializable {
     private long size; // free space
 
     public Node() {
-        this.address = "localhost"; // TODO: fetch the address of this server automatically. https://stackoverflow.com/questions/9481865/getting-the-ip-address-of-the-current-machine-using-java
+        this.address = System.getProperty("myIp");
     }
 
 
