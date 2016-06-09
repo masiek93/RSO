@@ -64,8 +64,8 @@ public class DirNode {
             // wylaczam tymczasowo, bo chcialbym ogladac czerwone logi. Potem bedzie mozna
             // przekierowac logowanie systemu na plik ustawiajac cos w konifugracji
             NodeScreen.setSilent(true);
-            ServerConsole serverConsole = new ServerConsole();
-            new Thread(serverConsole).start();
+//            ServerConsole serverConsole = new ServerConsole();
+//            new Thread(serverConsole).start();
 
 
 
