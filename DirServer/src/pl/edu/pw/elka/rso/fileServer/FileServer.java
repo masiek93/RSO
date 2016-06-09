@@ -137,7 +137,7 @@ public class FileServer {
 
                             fh.uploadFile(path, (int) ufm.getSizeInBytes(), ois, oos);
                             // send notification to directory server
-                            //confirmationMessageToDirectoryServer(socketToDirectoryServer, Type.FILE_RECIVED, Status.SUCCESSFUL, ufm.getId(), getDigest(path), serverID);
+                             //confirmationMessageToDirectoryServer(socketToDirectoryServer, Type.FILE_RECIVED, Status.SUCCESSFUL, ufm.getId(), getDigest(path), serverID);
 
                             LOGGER.info("File {} uploaded successfully", ufm.getId());
 
@@ -177,9 +177,7 @@ public class FileServer {
                 if (comunicationSocket != null) comunicationSocket.close();
             }
         } catch (Exception e) {
-            if(e.getMessage()!=null) {
-                LOGGER.error("unkown error", e);
-            }
+                LOGGER.error("Error while serving client", e);
         }
         LOGGER.info("closing connection with client {}:{}", socket.getInetAddress(), socket.getPort());
     }

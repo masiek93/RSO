@@ -2,6 +2,7 @@ package pl.edu.pw.elka.rso.fileServer;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import pl.edu.pw.elka.rso.util.Streams;
 
 import java.io.*;
 import java.net.Socket;
@@ -15,7 +16,7 @@ public class FileHandler {
 
 
 	static final Logger LOGGER = LoggerFactory.getLogger(FileHandler.class);
-	final static int FILEBUFFERSIZE = 1024;
+
 
 
 	/**
@@ -24,24 +25,28 @@ public class FileHandler {
      */
 	public void downloadFile(String filename, ObjectInputStream iis, ObjectOutputStream oos) throws IOException {
 
-		try (InputStream in = new FileInputStream(filename)){
 
-				byte[] bytes = new byte[FILEBUFFERSIZE];
+		try (InputStream fin = new FileInputStream(filename)){
 
-				long fileSize = Files.size(Paths.get(filename));
 
-				oos.writeLong(fileSize);
+					long fileSize = new File(filename).length();
 
-				int bytesRead;
-				while ((bytesRead = in.read(bytes)) != -1) {
-					oos.write(bytes, 0, bytesRead);
-				}
+					LOGGER.info("client is trying to download file {}({})", filename, fileSize);
 
-				LOGGER.info("Sending to client " + filename + "(" + fileSize + " bytes)");
-		        oos.flush();
+					oos.writeLong(fileSize);
+
+					long downloadSize = Streams.copy(fin, oos, fileSize);
+
+
+					if(downloadSize != fileSize) {
+						LOGGER.error("ATTENTION: DIFFERENCE BETWEEN REAL FILE SIZE & DOWNLOADED SIZE");
+					}
+
+
+					LOGGER.info("Sending to client {}({})", filename, downloadSize);
 
 		}catch (IOException e) {
-			LOGGER.error("error while downloading file", e);
+			LOGGER.error("error while sending client file {}", filename, e);
 			throw e;
 		}
 
@@ -59,18 +64,29 @@ public class FileHandler {
 	 * @param size
      */
 	public void uploadFile(String filename, int size, ObjectInputStream iis, ObjectOutputStream oos) throws IOException {
+
+		File f = new File(filename);
+
+		if(!f.isDirectory()) {
+			File parent = f.getParentFile();
+			parent.mkdirs();
+		}
+
 		try (FileOutputStream fos = new FileOutputStream(filename)){
 
+			LOGGER.info("client is trying to upload file {}({})", filename, size);
 
-			int bytesRead;
-			byte[] bytes = new byte[FILEBUFFERSIZE];
 
-			while ((bytesRead = iis.read(bytes)) != -1) {
-				fos.write(bytes, 0, bytesRead);
+
+			long uploadedSize = Streams.copy(iis, fos, size);
+
+			if(uploadedSize != size) {
+				LOGGER.error("ATTENTION: DIFFERENCE BETWEEN REAL FILE SIZE & DOWNLOADED SIZE");
 			}
 
 
-			LOGGER.info("new file is persisted in {}({})", filename, size);
+
+			LOGGER.info("new file is persisted in {}({})", filename, uploadedSize);
 
 	    }catch (IOException e) {
 			LOGGER.error("erorr while uploading file {} to fileserver: ", filename,  e);

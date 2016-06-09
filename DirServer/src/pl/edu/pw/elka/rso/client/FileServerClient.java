@@ -8,6 +8,7 @@ import pl.edu.pw.elka.rso.fileServer.DownloadFileMessage;
 import pl.edu.pw.elka.rso.fileServer.FileServer;
 import pl.edu.pw.elka.rso.fileServer.UploadFileMessage;
 import pl.edu.pw.elka.rso.ssl.SSocketFactory;
+import pl.edu.pw.elka.rso.util.Streams;
 
 import java.io.*;
 import java.net.Socket;
@@ -25,9 +26,6 @@ public class FileServerClient {
 
     Logger LOGGER = LoggerFactory.getLogger(FileServerClient.class);
 
-    final static int FILEBUFFERSIZE = 1024;
-
-
     public FileServerClient(String ipAddress, int port) {
         this.port = port;
         this.ipAddress = ipAddress;
@@ -38,10 +36,11 @@ public class FileServerClient {
 
     public void downloadFile(String serverPath, String localPath) throws IOException {
 
-        try (Socket socket = SSocketFactory.createSocket(ipAddress, port)) {
+        try (Socket socket = SSocketFactory.createSocket(ipAddress, port);
+             OutputStream fos = new FileOutputStream(localPath)) {
 
-            ObjectOutputStream oos = new ObjectOutputStream(socket.getOutputStream());
             ObjectInputStream iis = new ObjectInputStream(socket.getInputStream());
+            ObjectOutputStream oos = new ObjectOutputStream(socket.getOutputStream());
 
             // try making dirs            
             if(localPath.contains("/")) {
@@ -51,25 +50,24 @@ public class FileServerClient {
                 new File(localPath.substring(0, localPath.lastIndexOf("/"))).mkdirs();
             }
 
+            LOGGER.info("trying to download file {} from {}:{}", localPath, ipAddress, port);
 
 
-            OutputStream fos = new FileOutputStream(localPath);
+            oos.writeObject(new DownloadFileMessage(serverPath));
 
-            byte[] bytes = new byte[FILEBUFFERSIZE];
-
-
-            // size of file. Not used but must be.
+            // read size;
             long fileSize = iis.readLong();
 
-            int bytesRead;
-            while ((bytesRead = iis.read(bytes)) != -1) {
-                fos.write(bytes, 0, bytesRead);
+            long downloadedSize = Streams.copy(iis, fos, fileSize);
+            if(downloadedSize != fileSize) {
+                LOGGER.error("ATTENTION: DIFFERENCE BETWEEN REAL FILE SIZE & DOWNLOADED SIZE");
             }
 
-            LOGGER.info("saved to {}", localPath);
+
+            LOGGER.info("saved to {}({}) from {}:{}", localPath, downloadedSize, ipAddress, port);
 
         } catch (IOException e) {
-            LOGGER.error("error while downloading file {}", serverPath, e);
+            LOGGER.error("error while downloading file {} from {}:{}", serverPath, ipAddress, port, e);
             throw e;
         }
 
@@ -80,21 +78,29 @@ public class FileServerClient {
         try (Socket socket = SSocketFactory.createSocket(ipAddress, port);
              InputStream fis = new FileInputStream(localPath)) {
 
+
             ObjectOutputStream oos = new ObjectOutputStream(socket.getOutputStream());
 
-            oos.writeObject(new UploadFileMessage(serverPath, new File(localPath).length()));
+            long size = new File(localPath).length();
 
-            int bytesRead;
-            byte[] bytes = new byte[FILEBUFFERSIZE];
-            while ((bytesRead = fis.read(bytes)) != -1) {
-                oos.write(bytes, 0, bytesRead);
+
+            LOGGER.info("trying to upload file {}({}) to {}:{}", localPath, size, ipAddress, port);
+
+
+            oos.writeObject(new UploadFileMessage(serverPath, size));
+
+            long uploadedBytes = Streams.copy(fis, oos, size);
+
+            if(uploadedBytes != size) {
+                LOGGER.error("ATTENTION: DIFFERENCE BETWEEN REAL FILE SIZE & DOWNLOADED SIZE");
             }
-            oos.flush();
 
-            LOGGER.info("sucess while uploading file {}", localPath);
+
+
+            LOGGER.info("sucess while uploading file {}({}) to {}:{}", localPath, uploadedBytes, ipAddress, port);
 
         } catch (IOException e) {
-            LOGGER.error("error while uploading file {}", localPath, e);
+            LOGGER.error("error while uploading file {} to {}:{}", localPath, ipAddress, port, e);
             throw e;
         }
 
@@ -107,6 +113,9 @@ public class FileServerClient {
             ObjectInputStream iis = new ObjectInputStream(socket.getInputStream());
 
             oos.writeObject(new DeleteFileMessage(filePath));
+
+
+            LOGGER.info("deleted message from {}:{}", ipAddress, port);
 
         } catch (IOException e) {
             LOGGER.error("error while deleting file {}", filePath, e);
