@@ -40,3 +40,4 @@ for INSTANCE in fileServer1 fileServer2 fileServer3; do
     echo ${MARK}"Tworzę storage dla "${INSTANCE}
     mkdir ${INSTANCE}/storage
 done
+chown -R rso /home/rso/*
